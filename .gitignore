@@ -136,3 +136,4 @@ AutogluonModels/
 XBRL/
 catboost_info/
 dask-worker-space/
+.png
