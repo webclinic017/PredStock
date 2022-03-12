@@ -1,0 +1,28 @@
+channels:
+  - rapidsai
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.8
+  - cudatoolkit=11.4
+  - cuml=21.10
+  - pytorch
+  - matplotlib
+  - scikit-learn
+  - scikit-learn-intelex
+  - dask
+  - dask-ml
+  - ipython
+  - ipywidgets
+  - jupyterlab
+  - pip
+  - pip:
+    - xgboost
+    - tpot
+    - slackweb
+    - lxml
+    - xlrd
+    - beautifulsoup4
+    - html5lib

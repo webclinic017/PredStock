@@ -1,0 +1,27 @@
+channels:
+  - rapidsai
+  - nvidia
+  - conda-forge
+dependencies:
+  - rapids=22.02
+  - python=3.8
+  - cudatoolkit=11.5
+  - dask-sql
+  - cudnn
+  - nccl
+  - matplotlib
+  - pandas
+  - ipython
+  - ipywidgets
+  - jupyterlab
+  - pip
+  - pip:
+    - mxnet_cu112
+    - autogluon
+    - scikit-learn-intelex
+    - TA-lib
+    - lxml
+    - xlrd
+    - slackweb
+    - beautifulsoup4
+    - html5lib

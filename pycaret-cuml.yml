@@ -1,0 +1,22 @@
+channels:
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.8
+  - cudatoolkit=11.4
+  - matplotlib
+  - pandas
+  - ipython
+  - ipywidgets
+  - jupyterlab
+  - pip
+  - pip:
+    - lxml
+    - xlrd
+    - slackweb
+    - beautifulsoup4
+    - html5lib
+    - lightgbm --install-option=--gpu --install-option="--opencl-include-dir=/usr/local/cuda/include/" --install-option="--opencl-library=/usr/local/cuda/lib64/libOpenCL.so"
+    - pycaret[full]
+    - scikit-learn-intelex
