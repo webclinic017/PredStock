@@ -1,0 +1,3 @@
+30 16 * * 1-5 sh /home/toshi/STOCK/script/prd.sh
+30 16 * * 6 sh /home/toshi/STOCK/script/trn.sh
+30 16 * * 0 sh /home/toshi/STOCK/script/halt.sh
