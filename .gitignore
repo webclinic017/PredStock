@@ -128,14 +128,14 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-.ipynb
-.csv
-.zip
+*.ipynb
+*.csv
+*.zip
 00-JPRAW/
 AutogluonModels/
 XBRL/
 catboost_info/
 dask-worker-space/
-.png
-.xls
-.xlsx
+*.png
+*.xls
+*.xlsx
