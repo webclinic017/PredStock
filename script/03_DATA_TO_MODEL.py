@@ -12,7 +12,6 @@ import scipy
 import slackweb
 import talib
 from joblib import Parallel, delayed
-
 # from prophet import Prophet
 from sklearn.metrics import r2_score
 from sklearnex import patch_sklearn
@@ -24,15 +23,13 @@ patch_sklearn()
 def slack(txt):
     print(txt)
     try:
-        slack = slackweb.Slack(
-            url="https://hooks.slack.com/services/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"
-        )
+        slack = slackweb.Slack(url=pd.read_csv("slackkey.csv")["0"].item())
         slack.notify(text=txt)
     except:
         print("slack_error")
 
 
-os.chdir("/home/toshi/STOCK")
+os.chdir("/home/toshi/PROJECTS/PredStock")
 
 
 # nday = int(input('先読み日数'))
@@ -41,7 +38,7 @@ slack(nday)
 
 
 # drate = 1 + 0.01 * float(input('変動閾値 %'))
-drate = 1 + 0.01 * float(2 + 0.1 * (1 - 2 * random.random()))
+drate = 1 + 0.01 * float(1.6 + 0.1 * (1 - 2 * random.random()))
 slack(drate)
 
 
@@ -120,11 +117,22 @@ data_j = pd.merge(
 )
 
 
+# indusx = 1
+# data_j = data_j[data_j["indus"] == indusx]
+
+
+data_j
+
+
 def feature(df, lday):
     #     time series
     list_ = []
 
-    n_diff = ["xCP", "VOL"]
+    n_diff = [
+        "xCP",
+        "VOL",
+        # "NOP"
+    ]
     df_diff = df[n_diff]
     list_.append(np.log(df_diff.pct_change() + 1))
 
@@ -172,7 +180,8 @@ def feature(df, lday):
                 [
                     "LVOL",
                     # "RSI9", "RSI14",
-                    # "BBMID", "BBUP", "BBLO",
+                    # "BBMID",
+                    #  "BBUP", "BBLO",
                     # "SMA5", "SMA25",
                     "CP",
                 ]
@@ -219,7 +228,7 @@ def add_talib(df):
 
 lday = 10
 holdout = 62
-day_sample = 500 + int(40 * random.random())
+day_sample = 440 + int(200 * random.random())
 
 path = "./00-JPRAW/"
 df_date = pd.read_csv(path + "0000" + ".csv", index_col=0, parse_dates=True)
@@ -273,13 +282,45 @@ test = pd.concat(list_te).reset_index()
 del list_te, list_tr
 
 
+train.shape
+
+
+n_aug = 1
+
+
+def augment(df):
+    ignore_list = [
+        "DATE",
+        "sinday",
+        "cosday",
+        "CP",
+        "code",
+        "indus",
+        "scale",
+        "dura",
+        "LVOL",
+    ]
+    list_augment = []
+    r_aug = 1
+    for n in range(n_aug):
+        print(r_aug)
+        df1 = df.drop(ignore_list, axis=1)
+        df2 = df[ignore_list]
+        list_augment.append(pd.concat([df1 * r_aug, df2], axis=1))
+        r_aug = 1.1 ** (1 - 2 * random.random())
+    return pd.concat(list_augment).reset_index(drop=True)
+
+
+train = augment(train)
+gc.collect()
+
+
+train.shape
+
+
 def prep(df):
     df = df[df["CP"] < 3000]
     df.drop("CP", axis=1, inplace=True)
-
-    # 予測のときはLABELを処理しない
-    # df['LABEL'] = df['RATE'] > np.log(drate)
-    # df['LABEL'] = df['LABEL'].astype('int') * 1
 
     df.drop("dura", axis=1, inplace=True)
     # df = df[df['dura'] <= 40]
@@ -291,74 +332,17 @@ def prep(df):
     df.drop("scale", axis=1, inplace=True)
     # df = pd.get_dummies(df, columns=['scale'])
 
-    # df.drop("indus", axis = 1, inplace = True)
-    df = pd.get_dummies(df, columns=["indus"])
+    df.drop("indus", axis=1, inplace=True)
+    # df = pd.get_dummies(df, columns=['indus'])
 
     # 予測のときはdropnaしない
-    # df.dropna(inplace = True, subset = ["1_xCP"])
     df.dropna(inplace=True)
+    df["RATE2"] = df["RATE"]
+    df["RATE"] = (df["RATE"] > np.log(drate)) * 1
 
     df = df.reset_index(drop=True)
 
-    # print(df)
-
-    df = df.groupby("DATE").apply(ranker).reset_index(drop=True)
-
     return df
-
-
-def ranker(df):
-
-    ignore_list = [
-        "DATE",
-        "sinday",
-        "cosday",
-        "indus_1",
-        "indus_2",
-        "indus_3",
-        "indus_4",
-        "indus_5",
-        "indus_6",
-        "indus_7",
-        "indus_8",
-        "indus_9",
-        "indus_10",
-        "indus_11",
-        "indus_12",
-        "indus_13",
-        "indus_14",
-        "indus_15",
-        "indus_16",
-        "indus_17",
-        "code",
-    ]
-    df1 = df.drop(ignore_list, axis=1).rank() - 1
-    df1 /= df1.max()
-    df2 = df[ignore_list]
-    return pd.concat([df1, df2], axis=1)
-
-
-# train = prep(train)
-# df = train[train["DATE"] == "2020-01-27T00:00:00.000000000"]
-# ignore_list = [
-#     "DATE",
-#     "sinday",
-#     "cosday",
-#     "indus_1", "indus_2", "indus_3",
-#     "indus_4", "indus_5", "indus_6",
-#     "indus_7", "indus_8", "indus_9",
-#     "indus_10", "indus_11", "indus_12",
-#     "indus_13", "indus_14", "indus_15",
-#     "indus_16", "indus_17",
-#     "code"
-# ]
-
-# df_inter = df.drop(ignore_list, axis = 1)
-
-
-# df1 = pd.DataFrame(scipy.stats.zscore(df_inter),
-#                                 index=df_inter.index, columns=df_inter.columns)
-# df2 = df[ignore_list]
 
 
 train = prep(train)
@@ -366,40 +350,37 @@ test = prep(test)
 gc.collect()
 
 
-slack("test = " + str(len(test)))
+train.shape
 
 
 slack("train = " + str(len(train)))
 
 
+slack("test = " + str(len(test)))
+
+
 train.hist(figsize=(30, 30), bins=20)
 
 
-# さらに間引くのと、groupを付与
-n = 10
+# さらに間引く
 n_sample = 10000000
 if len(train) > n_sample:
     train_b = train.sample(n_sample)
-
 else:
     train_b = train
-
-dgroup = train_b.drop_duplicates("DATE").sort_values("DATE").reset_index(drop=True)
-dgroup["group"] = (n * dgroup.index / (dgroup.index.max() + 1)).astype(int)
-dgroup = dgroup[["DATE", "group"]]
-
-train_b = pd.merge(train_b, dgroup)
 gc.collect()
 
 
 from autogluon.tabular import TabularPredictor
 from autogluon.tabular.models.knn.knn_rapids_model import KNNRapidsModel
-
-# from autogluon.tabular.models.lr.lr_rapids_model import LinearRapidsModel
+from autogluon.tabular.models.lr.lr_rapids_model import LinearRapidsModel
 
 save_path = None
 label_column = "RATE"
-metric = "mae"
+# metric = 'r2'
+# metric = 'f1'
+metric = "roc_auc"
+# metric = 'log_loss'
 
 gbm_options = [
     {"ag_args_fit": {"num_gpus": 1}, "num_leaves": 20, "ag_args": {"name_suffix": "A"}},
@@ -438,15 +419,15 @@ gbm_options = [
 ]
 
 xgb_options = [
-    {},
+    {"ag_args_fit": {"num_gpus": 1}, "tree_method": "gpu_hist"},
     {
-        "max_depth": 5,
+        "max_depth": 7,
         "ag_args_fit": {"num_gpus": 1},
         "tree_method": "gpu_hist",
         "ag_args": {"name_suffix": "A"},
     },
     {
-        "max_depth": 8,
+        "max_depth": 9,
         "ag_args_fit": {"num_gpus": 1},
         "tree_method": "gpu_hist",
         "ag_args": {"name_suffix": "B"},
@@ -454,9 +435,9 @@ xgb_options = [
 ]
 
 cat_options = [
-    {},
-    {"max_depth": 4, "ag_args_fit": {"num_gpus": 1}, "ag_args": {"name_suffix": "A"}},
-    {"max_depth": 5, "ag_args_fit": {"num_gpus": 1}, "ag_args": {"name_suffix": "B"}},
+    {"ag_args_fit": {"num_gpus": 1}},
+    {"max_depth": 8, "ag_args_fit": {"num_gpus": 1}, "ag_args": {"name_suffix": "A"}},
+    {"max_depth": 10, "ag_args_fit": {"num_gpus": 1}, "ag_args": {"name_suffix": "B"}},
 ]
 
 xt_options = [
@@ -468,55 +449,51 @@ xt_options = [
 ]
 
 hyperparameters = {
-    KNNRapidsModel: {},
-    "LR": {},
-    "XGB": xgb_options,
-    "CAT": cat_options,
+    KNNRapidsModel: {"ag_args_ensemble": {"num_folds_parallel": 1}},
+    LinearRapidsModel: {"ag_args_ensemble": {"num_folds_parallel": 1}},
+    # "LR": {},
+    # 'XGB': xgb_options,
+    # 'CAT': cat_options,
     # 'GBM': gbm_options,
     # 'XT': xt_options,
-    # 'XGB': {'ag_args_fit': {'num_gpus': 1}},
-    # 'CAT': {'ag_args_fit': {'num_gpus': 1}},
-    "GBM": [
-        {"extra_trees": True},
-        # {'ag_args_fit': {'num_gpus': 1}},
-        "GBMLarge",
-    ],
-    "XT": {},
-    # 'NN': {'ag_args_fit': {'num_gpus': 1}, 'num_epoch': 2,"MXNET_CUDNN_LIB_CHECKING" : 0},
+    "XGB": {
+        "ag_args_fit": {"num_gpus": 1},
+        "ag_args_ensemble": {"num_folds_parallel": 2},
+    },
+    "CAT": {
+        "ag_args_fit": {"num_gpus": 1},
+        "ag_args_ensemble": {"num_folds_parallel": 1},
+    },
+    # 'GBM': [
+    #     {'ag_args_fit': {'num_gpus': 1}, 'extra_trees': True, 'ag_args': {'name_suffix': 'XT'}},
+    #     # {},
+    #     # 'GBMLarge',
+    # ],
+    # 'XT': {},
+    # 'NN_TORCH': {'ag_args_fit': {'num_gpus': 1}, "MXNET_CUDNN_LIB_CHECKING" : 0},
     # 'FASTAI': {'ag_args_fit': {'num_gpus': 1}},
-    # 'TRANSF': {'ag_args_fit': {'num_gpus': 1}, "d_model": 64, "activation": "relu"},
+    # 'TRANSF': {
+    #     'ag_args_fit': {'num_gpus': 1},
+    #     "batch_size": 4096,
+    #     "d_size": 16,
+    #     },
 }
 
 hyperparameter_tune_kwargs = {
     "searcher": "auto",
     "scheduler": "local",
-    "num_trials": 20,
-    # "reward_attr": 'accuracy',
-    "time_attr": "epoch",
-    "grace_period": 1,
-    "reduction_factor": 3,
-    # "max_t": 100,
+    "num_trials": 10,
 }
 
+new = TabularPredictor(label=label_column, eval_metric=metric, path=save_path)
 
-new = TabularPredictor(
-    label=label_column, groups="group", eval_metric=metric, path=save_path
-)
 new.fit(
-    train_data=train_b.drop(
-        [
-            "DATE",
-            "code",
-            # "group",
-        ],
-        axis=1,
-    ),
+    train_data=train_b.drop(["DATE", "code", "RATE2"], axis=1),
     num_bag_folds=10,
-    num_bag_sets=2,
-    num_stack_levels=2,
+    num_bag_sets=3,
+    num_stack_levels=1,
     hyperparameters=hyperparameters,
     # hyperparameter_tune_kwargs = hyperparameter_tune_kwargs,
-    # hyperparameter_tune_kwargs = "auto",
     save_space=True,
 )
 
@@ -569,20 +546,28 @@ def get_best(df):
     return df.sort_values("pred", ascending=False).head(1)
 
 
-score_new = df_te_new.groupby("DATE").apply(get_best)["RATE"].mean()
-score_pre = df_te_pre.groupby("DATE").apply(get_best)["RATE"].mean()
-slack("score_new =" + str(score_new))
-slack("score_pre =" + str(score_pre))
+score_new = df_te_new.groupby("DATE").apply(get_best)["RATE2"].mean()
+score_pre = df_te_pre.groupby("DATE").apply(get_best)["RATE2"].mean()
+# score_new = r2_score(df_te_new["RATE"], df_te_new["pred"])
+# score_pre = r2_score(df_te_pre["RATE"], df_te_pre["pred"])
+
+slack("score_new = " + str(score_new))
+slack("score_pre = " + str(score_pre))
 
 
-# n = holdout *10
 # 新旧モデル可視化
 fig = plt.figure(figsize=(10, 6), facecolor="white")
 plt.hist(
-    df_te_new.groupby("DATE").apply(get_best)["RATE"], bins=10, alpha=0.5, range=(0, 1)
+    df_te_new.groupby("DATE").apply(get_best)["RATE2"],
+    bins=20,
+    alpha=0.5,
+    range=(-0.3, 0.3),
 )
 plt.hist(
-    df_te_pre.groupby("DATE").apply(get_best)["RATE"], bins=10, alpha=0.5, range=(0, 1)
+    df_te_pre.groupby("DATE").apply(get_best)["RATE2"],
+    bins=20,
+    alpha=0.5,
+    range=(-0.3, 0.3),
 )
 plt.title("new=" + str(score_new) + " / pre=" + str(score_pre))
 plt.grid()
