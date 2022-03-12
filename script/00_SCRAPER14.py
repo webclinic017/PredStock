@@ -195,7 +195,7 @@ print("株価更新完了")
 
 try:
     slack = slackweb.Slack(
-        url="https://hooks.slack.com/services/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"
+        slack = slackweb.Slack(url=pd.read_csv("slackkey.csv")["0"].item())
     )
     slack.notify(text="kabuka_DL_done")
 except:
