@@ -8,10 +8,10 @@ import pandas as pd
 import timeout_decorator
 from tqdm import tqdm
 
-os.chdir("/home/toshi/STOCK/XBRL/")
+os.chdir("/home/toshi/PROJECTS/PredStock/XBRL/")
 
 
-data_j = pd.read_excel("/home/toshi/STOCK/data_j.xls")[["コード", "銘柄名"]]
+data_j = pd.read_excel("../data_j.xls")[["コード", "銘柄名"]]
 
 
 data_j["後株"] = data_j["銘柄名"] + "株式会社"
@@ -21,7 +21,7 @@ data_j["前株"] = "株式会社" + data_j["銘柄名"]
 
 
 # zip から読み込む (データフレームのリストが返る)
-allfiles = glob.glob("/home/toshi/STOCK/XBRL/ZIP/*")
+allfiles = glob.glob("./ZIP/*")
 # allfiles.append(glob.glob('C:/Users/toshi/Documents/STOCK/XBRL/ZIP_NOT_CSV/*'))
 
 
@@ -44,11 +44,11 @@ def process(i):
         )["コード"].iloc[0]
         date = df["提出日"][0].date()
         df.to_csv("./CSV/i{}_{}.csv".format(code, str(df["提出日"][0].date())))
-        shutil.move(zip_file, "/home/toshi/STOCK/XBRL/ZIP_GET_CSV/" + fname)
+        shutil.move(zip_file, "./ZIP_GET_CSV/" + fname)
         # print(date, code)
         return date, code
     except:
-        shutil.move(zip_file, "/home/toshi/STOCK/XBRL/ZIP_NOT_CSV/" + fname)
+        shutil.move(zip_file, "./ZIP_NOT_CSV/" + fname)
         return 0, 0
 
 

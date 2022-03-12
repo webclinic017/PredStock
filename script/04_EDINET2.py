@@ -10,7 +10,7 @@ import pandas as pd
 import requests
 from tqdm import tqdm
 
-os.chdir("/home/toshi/STOCK/XBRL/")
+os.chdir("/home/toshi/PROJECTS/PredStock/XBRL/")
 
 
 def fetch_xbrl(date):

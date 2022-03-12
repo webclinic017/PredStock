@@ -17,7 +17,7 @@ from tqdm import tqdm
 patch_sklearn()
 
 
-os.chdir("/home/toshi/STOCK")
+os.chdir("/home/toshi/PROJECTS/PredStock")
 
 
 def index_dtime(df):
@@ -66,13 +66,6 @@ code_list = data_j.drop(["indus", "scale"], axis=1).reset_index(drop=True)
 # data_j = data_j[data_j['indus'] == 1]
 
 
-XBRL_list = pd.read_csv("XBRL/XBRL_list.csv").drop_duplicates(subset=["DATE", "code"])
-XBRL_list["code"] = XBRL_list["code"].astype(str)
-data_j = pd.merge(
-    pd.DataFrame(XBRL_list["code"].unique().astype("str"), columns=["code"]), data_j
-)
-
-
 def feature(df, lday):
     #     time series
     list_ = []
@@ -103,20 +96,21 @@ def feature(df, lday):
     #      ]])
 
     dffeat = pd.concat(list_, axis=1).replace([np.inf, -np.inf], np.nan)
-    dffeat[["xCP", "OP", "HP", "LP"]] *= 30
+    # dffeat[['xCP', 'OP', 'HP', 'LP']] *= 30
     # dffeat[[
     #     'NOP',
     #     # 'NHP',
     #     # 'NLP'
     #     ]] *= 60
     # dffeat[["MACDHIS"]] *= 0.015
-    df[["BBMID", "BBUP", "BBLO", "SMA5", "SMA25"]] *= 6
-    df[["RSI9", "RSI14"]] *= 0.03
+    # df[["BBMID", "BBUP", "BBLO", "SMA5", "SMA25"]] *= 6
+    # df[["RSI9", "RSI14"]] *= 0.03
 
     list_2 = []
     for n in range(lday):
         list_2.append(dffeat.add_prefix(str(n + 1) + "_").shift(n))
     out = pd.concat(list_2, axis=1)
+
     out = pd.concat(
         [
             out,
@@ -169,9 +163,16 @@ def add_talib(df):
     ]
 
 
+XBRL_list = pd.read_csv("XBRL/XBRL_list.csv").drop_duplicates(subset=["DATE", "code"])
+XBRL_list["code"] = XBRL_list["code"].astype(str)
+data_j = pd.merge(
+    pd.DataFrame(XBRL_list["code"].unique().astype("str"), columns=["code"]), data_j
+)
+
+
 lday = 10
 holdout = 62
-day_sample = 520
+day_sample = 440 + int(200 * random.random())
 
 path = "./00-JPRAW/"
 df_date = pd.read_csv(path + "0000" + ".csv", index_col=0, parse_dates=True)
@@ -223,6 +224,12 @@ test = pd.concat(list_te).reset_index()
 del list_te, list_tr
 
 
+train
+
+
+p_rate = 0.8
+
+
 def prep(df):
     df = df[df["CP"] < 3000]
     df.drop("CP", axis=1, inplace=True)
@@ -250,9 +257,13 @@ def prep(df):
 
     df = df.reset_index(drop=True)
 
-    df_out = df.groupby("DATE").apply(ranker).reset_index(drop=True)
+    # df["RATE2"] = df["RATE"]
 
-    return df_out
+    df = df.groupby("DATE").apply(ranker).reset_index(drop=True)
+
+    # df["RATE"] = (df["RATE"] > p_rate) * 1
+
+    return df
 
 
 def ranker(df):
@@ -277,7 +288,11 @@ def ranker(df):
         "indus_15",
         "indus_16",
         "indus_17",
+        # "day_0.0", "day_1.0", "day_2.0",
+        # "day_3.0", "day_4.0" ,
         "code",
+        "LVOL",
+        # "RATE2",
     ]
     # 昇順でランクづけされる、つまり最も値上がりしたものは１、最も値下がりしたものは０
     df1 = df.drop(ignore_list, axis=1).rank() - 1
@@ -356,9 +371,7 @@ print(slacker)
 
 
 try:
-    slack = slackweb.Slack(
-        url="https://hooks.slack.com/services/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"
-    )
+    slack = slackweb.Slack(url=pd.read_csv("slackkey.csv")["0"].item())
     slack.notify(text=slacker)
 except:
     print(1)

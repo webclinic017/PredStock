@@ -14,16 +14,14 @@ import slackweb
 import xlrd
 from bs4 import BeautifulSoup
 
+os.chdir("/home/toshi/PROJECTS/PredStock")
+
+
 try:
-    slack = slackweb.Slack(
-        url="https://hooks.slack.com/services/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"
-    )
+    slack = slackweb.Slack(url=pd.read_csv("slackkey.csv")["0"].item())
     slack.notify(text="scraper開始")
 except:
     print("slack_not_available")
-
-
-os.chdir("/home/toshi/STOCK")
 
 
 # ダウンロードする株価の種別を決める
@@ -197,7 +195,7 @@ print("株価更新完了")
 
 try:
     slack = slackweb.Slack(
-        url="https://hooks.slack.com/services/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"
+        url="https://hooks.slack.com/services/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"
     )
     slack.notify(text="kabuka_DL_done")
 except:
