@@ -139,3 +139,4 @@ dask-worker-space/
 *.png
 *.xls
 *.xlsx
+*.mdl
