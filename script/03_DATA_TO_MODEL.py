@@ -31,16 +31,13 @@ def slack(txt):
 
 os.chdir("/home/toshi/PROJECTS/PredStock")
 
-
 # nday = int(input('先読み日数'))
 nday = int(1)
 slack(nday)
 
-
 # drate = 1 + 0.01 * float(input('変動閾値 %'))
 drate = 1 + 0.01 * float(1.6 + 0.1 * (1 - 2 * random.random()))
 slack(drate)
-
 
 # # CP_CP
 # def label(df, nday, drate):
@@ -67,7 +64,6 @@ def label(df, nday):
 # def index_dtime(df):
 #     df.index = pd.to_datetime(df.index)
 #     return df
-
 
 # ダウンロードする株価の種別を決める
 def get_data_j():
@@ -109,17 +105,14 @@ code_list = data_j.drop(["indus", "scale"], axis=1).reset_index(drop=True)
 # 産業コードをしぼる
 # data_j = data_j[data_j['indus'] == 1]
 
-
 XBRL_list = pd.read_csv("XBRL/XBRL_list.csv").drop_duplicates()
 XBRL_list["code"] = XBRL_list["code"].astype(str)
 data_j = pd.merge(
     pd.DataFrame(XBRL_list["code"].unique().astype("str"), columns=["code"]), data_j
 )
 
-
 # indusx = 1
 # data_j = data_j[data_j["indus"] == indusx]
-
 
 data_j
 
@@ -281,11 +274,9 @@ train = pd.concat(list_tr).reset_index()
 test = pd.concat(list_te).reset_index()
 del list_te, list_tr
 
-
 train.shape
 
-
-n_aug = 1
+n_aug = 3
 
 
 def augment(df):
@@ -313,7 +304,6 @@ def augment(df):
 
 train = augment(train)
 gc.collect()
-
 
 train.shape
 
@@ -349,31 +339,30 @@ train = prep(train)
 test = prep(test)
 gc.collect()
 
-
 train.shape
-
 
 slack("train = " + str(len(train)))
 
-
 slack("test = " + str(len(test)))
-
 
 train.hist(figsize=(30, 30), bins=20)
 
-
+n = 10
 # さらに間引く
-n_sample = 10000000
+n_sample = 10000
 if len(train) > n_sample:
     train_b = train.sample(n_sample)
 else:
     train_b = train
-gc.collect()
 
+dgroup = train_b.drop_duplicates("DATE").sort_values("DATE").reset_index(drop=True)
+dgroup["group"] = (n * dgroup.index / (dgroup.index.max() + 1)).astype(int)
+dgroup = dgroup[["DATE", "group"]]
+train_b = pd.merge(train_b, dgroup)
+gc.collect()
 
 from autogluon.tabular import TabularPredictor
 from autogluon.tabular.models.knn.knn_rapids_model import KNNRapidsModel
-from autogluon.tabular.models.lr.lr_rapids_model import LinearRapidsModel
 
 save_path = None
 label_column = "RATE"
@@ -449,26 +438,33 @@ xt_options = [
 ]
 
 hyperparameters = {
-    KNNRapidsModel: {"ag_args_ensemble": {"num_folds_parallel": 1}},
-    LinearRapidsModel: {"ag_args_ensemble": {"num_folds_parallel": 1}},
-    # "LR": {},
+    KNNRapidsModel: {
+        "ag_args_fit": {"num_gpus": 1},
+        "ag_args_ensemble": {"num_folds_parallel": 1},
+    },
+    "LR": {},
     # 'XGB': xgb_options,
     # 'CAT': cat_options,
     # 'GBM': gbm_options,
     # 'XT': xt_options,
     "XGB": {
         "ag_args_fit": {"num_gpus": 1},
-        "ag_args_ensemble": {"num_folds_parallel": 2},
+        "ag_args_ensemble": {"num_folds_parallel": 1},
     },
     "CAT": {
         "ag_args_fit": {"num_gpus": 1},
         "ag_args_ensemble": {"num_folds_parallel": 1},
     },
-    # 'GBM': [
-    #     {'ag_args_fit': {'num_gpus': 1}, 'extra_trees': True, 'ag_args': {'name_suffix': 'XT'}},
-    #     # {},
-    #     # 'GBMLarge',
-    # ],
+    "GBM": [
+        {
+            "ag_args_fit": {"num_gpus": 1},
+            "ag_args_ensemble": {"num_folds_parallel": 5},
+            "extra_trees": True,
+            "ag_args": {"name_suffix": "XT"},
+        },
+        {"ag_args_fit": {"num_gpus": 1}, "ag_args_ensemble": {"num_folds_parallel": 5}},
+        # 'GBMLarge',
+    ],
     # 'XT': {},
     # 'NN_TORCH': {'ag_args_fit': {'num_gpus': 1}, "MXNET_CUDNN_LIB_CHECKING" : 0},
     # 'FASTAI': {'ag_args_fit': {'num_gpus': 1}},
@@ -485,30 +481,27 @@ hyperparameter_tune_kwargs = {
     "num_trials": 10,
 }
 
-new = TabularPredictor(label=label_column, eval_metric=metric, path=save_path)
+new = TabularPredictor(
+    label=label_column, eval_metric=metric, path=save_path, groups="group"
+)
 
 new.fit(
     train_data=train_b.drop(["DATE", "code", "RATE2"], axis=1),
     num_bag_folds=10,
-    num_bag_sets=3,
-    num_stack_levels=1,
+    num_bag_sets=1,
+    num_stack_levels=2,
     hyperparameters=hyperparameters,
     # hyperparameter_tune_kwargs = hyperparameter_tune_kwargs,
     save_space=True,
 )
 
-
 test.to_csv("test.csv")
-
 
 test = pd.read_csv("test.csv")
 
+pickle.dump(new, open("ag_model_flat_new.mdl", "wb"))
 
-pickle.dump(new, open("ag_model_flat_new", "wb"))
-
-
-new = pickle.load(open("ag_model_flat_new", "rb"))
-
+new = pickle.load(open("ag_model_flat_new.mdl", "rb"))
 
 # testで予測
 gc.collect()
@@ -521,10 +514,9 @@ except:
         [test, pd.DataFrame(new.predict(test)).rename(columns={"RATE": "pred"})], axis=1
     )
 
-
 # bestモデルを読んで予測。読めない、あるいは説明データに対応できない場合は、新モデルで上書きする。
 try:
-    pre = pickle.load(open("ag_model_flat_best", "rb"))
+    pre = pickle.load(open("ag_model_flat_best.mdl", "rb"))
     try:
         df_te_pre = pd.concat(
             [test, pre.predict_proba(test).rename(columns={1: "pred"})["pred"]], axis=1
@@ -539,7 +531,7 @@ except:
     slack("旧モデル読み込みおよび予測失敗、新モデルで上書き")
     pre = new
     df_te_pre = df_te_new
-    pickle.dump(new, open("ag_model_flat_best", "wb"))
+    pickle.dump(new, open("ag_model_flat_best.mdl", "wb"))
 
 
 def get_best(df):
@@ -553,7 +545,6 @@ score_pre = df_te_pre.groupby("DATE").apply(get_best)["RATE2"].mean()
 
 slack("score_new = " + str(score_new))
 slack("score_pre = " + str(score_pre))
-
 
 # 新旧モデル可視化
 fig = plt.figure(figsize=(10, 6), facecolor="white")
@@ -574,14 +565,13 @@ plt.grid()
 fig.savefig("hist_positive_ag.png")
 
 if score_new >= score_pre:
-    pickle.dump(new, open("ag_model_flat_best", "wb"))
+    pickle.dump(new, open("ag_model_flat_best.mdl", "wb"))
     score_best = score_new
     slacker = "モデル更新完了 " + str(score_best)
 else:
-    pickle.dump(pre, open("ag_model_flat_best", "wb"))
+    pickle.dump(pre, open("ag_model_flat_best.mdl", "wb"))
     score_best = score_pre
     slacker = "モデルそのまま " + str(score_best)
-
 
 slack(slacker)
 
