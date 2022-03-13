@@ -311,7 +311,7 @@ test = test[test["DATE"] == test["DATE"].max()].reset_index(drop=True)
 
 import pickle
 
-pre = pickle.load(open("ag_model_flat_best", "rb"))
+pre = pickle.load(open("ag_model_flat_best.mdl", "rb"))
 
 
 # X_test = test.drop(['DATE', 'code'], axis = 1)
