@@ -449,7 +449,7 @@ hyperparameters = {
     # 'XT': xt_options,
     "XGB": {
         "ag_args_fit": {"num_gpus": 1},
-        "ag_args_ensemble": {"num_folds_parallel": 3},
+        "ag_args_ensemble": {"num_folds_parallel": 1},
     },
     "CAT": {
         "ag_args_fit": {"num_gpus": 1},
