@@ -10,12 +10,12 @@ import numpy as np
 import pandas as pd
 import slackweb
 import talib
+
 # from prophet import Prophet
 from sklearnex import patch_sklearn
 from tqdm import tqdm
 
 patch_sklearn()
-
 
 os.chdir("/home/toshi/PROJECTS/PredStock")
 
@@ -70,7 +70,11 @@ def feature(df, lday):
     #     time series
     list_ = []
 
-    n_diff = ["xCP", "VOL"]
+    n_diff = [
+        "xCP",
+        "VOL",
+        # "NOP"
+    ]
     df_diff = df[n_diff]
     list_.append(np.log(df_diff.pct_change() + 1))
 
@@ -118,7 +122,8 @@ def feature(df, lday):
                 [
                     "LVOL",
                     # "RSI9", "RSI14",
-                    # "BBMID", "BBUP", "BBLO",
+                    # "BBMID",
+                    #  "BBUP", "BBLO",
                     # "SMA5", "SMA25",
                     "CP",
                 ]
@@ -169,7 +174,6 @@ data_j = pd.merge(
     pd.DataFrame(XBRL_list["code"].unique().astype("str"), columns=["code"]), data_j
 )
 
-
 lday = 10
 holdout = 62
 day_sample = 440 + int(200 * random.random())
@@ -197,8 +201,10 @@ for i, j, scale in zip(data_j["code"], data_j["indus"], data_j["scale"]):
         df_plus["xHP"] = df_plus["HP"] / df_plus["NHP"]
         df_plus["xLP"] = df_plus["LP"] / df_plus["NLP"]
         df_plus["xCP"] = df_plus["CP"] / df_plus["NCP"]
-        df_uni = feature(df_plus, lday)  # for predict
-        # df_uni = pd.concat([feature(df_plus, lday), label(df_plus, nday)], axis = 1) #for train
+        # df_uni = feature(df_plus, lday) #for predict
+        df_uni = pd.concat(
+            [feature(df_plus, lday), label(df_plus, nday)], axis=1
+        )  # for train
         df_uni = df_uni.replace(np.inf, np.nan).replace(-np.inf, np.nan)
         df_uni["code"] = k
         df_uni["indus"] = l
@@ -223,24 +229,16 @@ train = pd.concat(list_tr).reset_index()
 test = pd.concat(list_te).reset_index()
 del list_te, list_tr
 
-
 train
-
-
-p_rate = 0.8
 
 
 def prep(df):
     df = df[df["CP"] < 3000]
     df.drop("CP", axis=1, inplace=True)
 
-    # 予測のときはLABELを処理しない
-    # df['LABEL'] = df['RATE'] > np.log(drate)
-    # df['LABEL'] = df['LABEL'].astype('int') * 1
-
-    df.drop("dura", axis=1, inplace=True)
-    # df = df[df['dura'] <= 40]
-    # df['dura'] /= 5
+    # df.drop("dura", axis = 1, inplace = True)
+    df = df[df["dura"] <= 20]
+    df["dura"] /= 20
 
     # df.drop("day", axis = 1, inplace = True)
     # df = pd.get_dummies(df, columns=['day'])
@@ -248,71 +246,28 @@ def prep(df):
     df.drop("scale", axis=1, inplace=True)
     # df = pd.get_dummies(df, columns=['scale'])
 
-    # df.drop("indus", axis = 1, inplace = True)
-    df = pd.get_dummies(df, columns=["indus"])
+    df.drop("indus", axis=1, inplace=True)
+    # df = pd.get_dummies(df, columns=['indus'])
 
     # 予測のときはdropnaしない
-    # df.dropna(inplace = True, subset = ["1_xCP"])
     # df.dropna(inplace = True)
+    # df["RATE2"] = df["RATE"]
+    # df["RATE"] = (df["RATE"] > np.log(drate)) * 1
 
     df = df.reset_index(drop=True)
 
-    # df["RATE2"] = df["RATE"]
-
-    df = df.groupby("DATE").apply(ranker).reset_index(drop=True)
-
-    # df["RATE"] = (df["RATE"] > p_rate) * 1
-
     return df
-
-
-def ranker(df):
-    ignore_list = [
-        "DATE",
-        "sinday",
-        "cosday",
-        "indus_1",
-        "indus_2",
-        "indus_3",
-        "indus_4",
-        "indus_5",
-        "indus_6",
-        "indus_7",
-        "indus_8",
-        "indus_9",
-        "indus_10",
-        "indus_11",
-        "indus_12",
-        "indus_13",
-        "indus_14",
-        "indus_15",
-        "indus_16",
-        "indus_17",
-        # "day_0.0", "day_1.0", "day_2.0",
-        # "day_3.0", "day_4.0" ,
-        "code",
-        "LVOL",
-        # "RATE2",
-    ]
-    # 昇順でランクづけされる、つまり最も値上がりしたものは１、最も値下がりしたものは０
-    df1 = df.drop(ignore_list, axis=1).rank() - 1
-    df1 /= df1.max()
-    df2 = df[ignore_list]
-    return pd.concat([df1, df2], axis=1)
 
 
 train = prep(train)
 test = prep(test)
 
-
 # 今日の日付のものだけ
 test = test[test["DATE"] == test["DATE"].max()].reset_index(drop=True)
-
 
 import pickle
 
 pre = pickle.load(open("ag_model_flat_best.mdl", "rb"))
-
 
 # X_test = test.drop(['DATE', 'code'], axis = 1)
 
@@ -326,19 +281,15 @@ except:
         [test, pd.DataFrame(pre.predict(test)).rename(columns={"RATE": "pred"})], axis=1
     )
 
-
 dffuture2["pred"].hist()
 
-
 dffuture2.sort_values("pred", ascending=False)[["code", "pred"]].head(1)
-
 
 dffuture3 = dffuture2.sort_values("pred", ascending=False)[["code", "pred"]]
 date = test["DATE"].tail(1).item()
 print(date)
 print(dffuture3)
 print("全行程完了")
-
 
 if len(dffuture3) == 0:
     print("NO BEST")
@@ -363,12 +314,9 @@ else:
         body_a = body_a + "/Score=" + str(dffuture3.loc[:, "pred"].iloc[i]) + "\n"
     # body_a = body_a + ' Length = ' + str(len(dffuture3))
 
-
 slacker = subject_a + "\n" + body_a
 
-
 print(slacker)
-
 
 try:
     slack = slackweb.Slack(url=pd.read_csv("slackkey.csv")["0"].item())
