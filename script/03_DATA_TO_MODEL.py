@@ -368,8 +368,8 @@ from autogluon.tabular.models.knn.knn_rapids_model import KNNRapidsModel
 save_path = None
 label_column = "RATE"
 # metric = 'r2'
-metric = "f1"
-# metric = 'roc_auc'
+# metric = 'f1'
+metric = "roc_auc"
 # metric = 'log_loss'
 
 gbm_options = [
