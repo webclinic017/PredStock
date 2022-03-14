@@ -1,1 +1,1 @@
-ipython /home/toshi/STOCK/script/99_SHUTDOWN.py
+ipython /home/toshi/PROJECTS/PredStock/script/99_SHUTDOWN.py
