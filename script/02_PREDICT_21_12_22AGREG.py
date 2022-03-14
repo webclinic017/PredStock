@@ -201,10 +201,8 @@ for i, j, scale in zip(data_j["code"], data_j["indus"], data_j["scale"]):
         df_plus["xHP"] = df_plus["HP"] / df_plus["NHP"]
         df_plus["xLP"] = df_plus["LP"] / df_plus["NLP"]
         df_plus["xCP"] = df_plus["CP"] / df_plus["NCP"]
-        # df_uni = feature(df_plus, lday) #for predict
-        df_uni = pd.concat(
-            [feature(df_plus, lday), label(df_plus, nday)], axis=1
-        )  # for train
+        df_uni = feature(df_plus, lday)  # for predict
+        # df_uni = pd.concat([feature(df_plus, lday), label(df_plus, nday)], axis = 1) #for train
         df_uni = df_uni.replace(np.inf, np.nan).replace(-np.inf, np.nan)
         df_uni["code"] = k
         df_uni["indus"] = l
