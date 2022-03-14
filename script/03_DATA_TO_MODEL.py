@@ -443,7 +443,7 @@ hyperparameters = {
         "ag_args_fit": {"num_gpus": 1},
         "ag_args_ensemble": {"num_folds_parallel": 1},
     },
-    "LR": {},
+    "LR": {"ag_args_ensemble": {"num_folds_parallel": 1}},
     # 'XGB': xgb_options,
     # 'CAT': cat_options,
     # 'GBM': gbm_options,
