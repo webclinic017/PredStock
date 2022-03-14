@@ -15,10 +15,10 @@ fi
 unset __conda_setup
 # <<< conda initialize <<<
 
-chown -R toshi /home/toshi/STOCK/AutogluonModels/*
+chown -R toshi /home/toshi/PROJECTS/PredStock/AutogluonModels/*
 conda activate ag2
-ipython /home/toshi/STOCK/script/03_DATA_TO_MODEL.py
-chown -R toshi /home/toshi/STOCK/AutogluonModels/*
-ipython /home/toshi/STOCK/script/02_PREDICT_21_12_22AGREG.py
-# rsync /home/toshi/STOCK/ /mnt/qnap/home/STOCK/ -avh --delete
-ipython /home/toshi/STOCK/script/99_SHUTDOWN.py
+ipython /home/toshi/PROJECTS/PredStock/script/03_DATA_TO_MODEL.py
+chown -R toshi /home/toshi/PROJECTS/PredStock/AutogluonModels/*
+ipython /home/toshi/PROJECTS/PredStock/script/02_PREDICT_21_12_22AGREG.py
+# rsync /home/toshi/PROJECTS/PredStock/ /mnt/qnap/home/PROJECTS/PredStock/ -avh --delete
+ipython /home/toshi/PROJECTS/PredStock/script/99_SHUTDOWN.py

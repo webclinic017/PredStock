@@ -1,3 +1,3 @@
 #!/bin/sh
 
-rsync /home/toshi/STOCK/ /mnt/qnap/home/STOCK/ -avh --delete
+rsync /home/toshi/PROJECTS/PredStock/ /mnt/qnap/home/PROJECTS/PredStock/ -avh --delete
