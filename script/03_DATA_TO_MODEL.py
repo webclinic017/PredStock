@@ -12,6 +12,7 @@ import scipy
 import slackweb
 import talib
 from joblib import Parallel, delayed
+
 # from prophet import Prophet
 from sklearn.metrics import r2_score
 from sklearnex import patch_sklearn
@@ -276,7 +277,7 @@ del list_te, list_tr
 
 train.shape
 
-n_aug = 3
+n_aug = 8
 
 
 def augment(df):
@@ -298,7 +299,7 @@ def augment(df):
         df1 = df.drop(ignore_list, axis=1)
         df2 = df[ignore_list]
         list_augment.append(pd.concat([df1 * r_aug, df2], axis=1))
-        r_aug = 1.1 ** (1 - 2 * random.random())
+        r_aug = 1.2 ** (1 - 2 * random.random())
     return pd.concat(list_augment).reset_index(drop=True)
 
 
@@ -312,9 +313,9 @@ def prep(df):
     df = df[df["CP"] < 3000]
     df.drop("CP", axis=1, inplace=True)
 
-    df.drop("dura", axis=1, inplace=True)
-    # df = df[df['dura'] <= 40]
-    # df['dura'] /= 5
+    # df.drop("dura", axis = 1, inplace = True)
+    df = df[df["dura"] <= 20]
+    df["dura"] /= 20
 
     # df.drop("day", axis = 1, inplace = True)
     # df = pd.get_dummies(df, columns=['day'])
@@ -349,7 +350,7 @@ train.hist(figsize=(30, 30), bins=20)
 
 n = 10
 # さらに間引く
-n_sample = 10000
+n_sample = 5000000
 if len(train) > n_sample:
     train_b = train.sample(n_sample)
 else:
@@ -367,8 +368,8 @@ from autogluon.tabular.models.knn.knn_rapids_model import KNNRapidsModel
 save_path = None
 label_column = "RATE"
 # metric = 'r2'
-# metric = 'f1'
-metric = "roc_auc"
+metric = "f1"
+# metric = 'roc_auc'
 # metric = 'log_loss'
 
 gbm_options = [
@@ -462,7 +463,7 @@ hyperparameters = {
             "extra_trees": True,
             "ag_args": {"name_suffix": "XT"},
         },
-        {"ag_args_fit": {"num_gpus": 1}, "ag_args_ensemble": {"num_folds_parallel": 5}},
+        # {'ag_args_fit': {'num_gpus': 1}, "ag_args_ensemble": {"num_folds_parallel": 5}},
         # 'GBMLarge',
     ],
     # 'XT': {},
