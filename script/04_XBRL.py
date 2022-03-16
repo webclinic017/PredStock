@@ -10,23 +10,17 @@ from tqdm import tqdm
 
 os.chdir("/home/toshi/PROJECTS/PredStock/XBRL/")
 
-
 data_j = pd.read_excel("../data_j.xls")[["コード", "銘柄名"]]
-
 
 data_j["後株"] = data_j["銘柄名"] + "株式会社"
 
-
 data_j["前株"] = "株式会社" + data_j["銘柄名"]
-
 
 # zip から読み込む (データフレームのリストが返る)
 allfiles = glob.glob("./ZIP/*")
 # allfiles.append(glob.glob('C:/Users/toshi/Documents/STOCK/XBRL/ZIP_NOT_CSV/*'))
 
-
 # print(allfiles)
-
 
 from xbrl_proc import read_xbrl_from_zip
 
@@ -69,7 +63,6 @@ if len(allfiles) > 0:
     df_new = pd.concat(list_)
 else:
     df_new = pd.DataFrame()
-
 
 if len(df_new) == 0:
     if len(df_old) == 0:

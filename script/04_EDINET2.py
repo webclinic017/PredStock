@@ -60,7 +60,6 @@ date_list = [datetime.datetime.now() + timedelta(days=-i) for i in range(0, 30)]
 date_str_list = [d.strftime("%Y-%m-%d") for d in date_list]
 print(date_str_list[0])
 
-
 from joblib import Parallel, delayed
 
 r = Parallel(n_jobs=20)([delayed(fetch_xbrl)(i) for i in date_str_list])
