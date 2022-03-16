@@ -20,6 +20,15 @@ patch_sklearn()
 os.chdir("/home/toshi/PROJECTS/PredStock")
 
 
+def slack(txt):
+    print(txt)
+    try:
+        slack = slackweb.Slack(url=pd.read_csv("slackkey.csv")["0"].item())
+        slack.notify(text=txt)
+    except:
+        print("slack_error")
+
+
 def index_dtime(df):
     df.index = pd.to_datetime(df.index)
     return df
@@ -68,104 +77,33 @@ code_list = data_j.drop(["indus", "scale"], axis=1).reset_index(drop=True)
 
 def feature(df, lday):
     #     time series
+    n_diff = ["CP", "NCP", "VOL"]
+    df_diff = df[n_diff].add_prefix("p")
+    df_diff = np.log(df_diff.pct_change() + 1)
+    # df_diff['xCP'] = df_diff['xCP'].clip(lower = -0.3, upper = 0.3)
+
+    n_ratio = ["OP", "HP", "LP"]
     list_ = []
-
-    n_diff = [
-        "xCP",
-        "VOL",
-        # "NOP"
-    ]
-    df_diff = df[n_diff]
-    list_.append(np.log(df_diff.pct_change() + 1))
-
-    n_ratio = [
-        "OP",
-        "HP",
-        "LP",
-        #  "BBUP", "BBLO",
-    ]
     for name in n_ratio:
         list_.append(pd.DataFrame(np.log(df[name] / df["CP"]), columns={name}))
 
-    # n_ratio2 = [
-    #     'NOP',
-    #     # 'NHP',
-    #     # 'NLP'
-    #     ]
-    # for name in n_ratio2:
-    #     list_.append(pd.DataFrame(np.log(df[name]/df['NCP']), columns = {name}))
+    n_ratio2 = ["NOP", "NHP", "NLP"]
+    for name in n_ratio2:
+        list_.append(pd.DataFrame(np.log(df[name] / df["NCP"]), columns={name}))
 
-    # list_.append(df[[
-    #     "MACDHIS",
-    #      ]])
-
-    dffeat = pd.concat(list_, axis=1).replace([np.inf, -np.inf], np.nan)
-    # dffeat[['xCP', 'OP', 'HP', 'LP']] *= 30
-    # dffeat[[
-    #     'NOP',
-    #     # 'NHP',
-    #     # 'NLP'
-    #     ]] *= 60
-    # dffeat[["MACDHIS"]] *= 0.015
-    # df[["BBMID", "BBUP", "BBLO", "SMA5", "SMA25"]] *= 6
-    # df[["RSI9", "RSI14"]] *= 0.03
+    df_ratio = pd.concat(list_, axis=1)
+    dffeat = pd.concat([df_diff, df_ratio], axis=1).replace([np.inf, -np.inf], np.nan)
+    dffeat[["pCP", "pNCP", "OP", "HP", "LP"]] *= 30
+    # dffeat[['xOP', 'xHP', 'xLP']] *= 30
+    dffeat[["NOP", "NHP", "NLP"]] *= 60
 
     list_2 = []
     for n in range(lday):
         list_2.append(dffeat.add_prefix(str(n + 1) + "_").shift(n))
     out = pd.concat(list_2, axis=1)
 
-    out = pd.concat(
-        [
-            out,
-            df[
-                [
-                    "LVOL",
-                    # "RSI9", "RSI14",
-                    # "BBMID",
-                    #  "BBUP", "BBLO",
-                    # "SMA5", "SMA25",
-                    "CP",
-                ]
-            ],
-        ],
-        axis=1,
-    )
-
+    out = pd.concat([out, df[["LVOL", "CP"]]], axis=1)
     return out
-
-
-def add_talib(df):
-    df = df.ffill()
-    df["SMA5"] = talib.SMA(df["CP"], timeperiod=5)
-    df["SMA25"] = talib.SMA(df["CP"], timeperiod=25)
-    df["SMA5"] = np.log(df["SMA5"] / df["CP"])
-    df["SMA25"] = np.log(df["SMA25"] / df["CP"])
-    df["BBUP"], df["BBMID"], df["BBLO"] = talib.BBANDS(
-        df["CP"], timeperiod=25, nbdevup=2, nbdevdn=2, matype=0
-    )
-    df["BBUP"] = np.log(df["BBUP"] / df["CP"])
-    df["BBMID"] = np.log(df["BBMID"] / df["CP"])
-    df["BBLO"] = np.log(df["BBLO"] / df["CP"])
-    df["MACD"], df["MACDSIG"], df["MACDHIS"] = talib.MACD(
-        df["CP"], fastperiod=12, slowperiod=26, signalperiod=9
-    )
-    df["RSI9"] = talib.RSI(df["CP"], timeperiod=9) - 50
-    df["RSI14"] = talib.RSI(df["CP"], timeperiod=14) - 50
-    return df[
-        [
-            "SMA5",
-            "SMA25",
-            "BBUP",
-            "BBMID",
-            "BBLO",
-            "MACD",
-            "MACDSIG",
-            "MACDHIS",
-            "RSI9",
-            "RSI14",
-        ]
-    ]
 
 
 XBRL_list = pd.read_csv("XBRL/XBRL_list.csv").drop_duplicates(subset=["DATE", "code"])
@@ -176,10 +114,15 @@ data_j = pd.merge(
 
 lday = 10
 holdout = 62
-day_sample = 440 + int(200 * random.random())
+day_sample = 520
+day_behind = 0
 
 path = "./00-JPRAW/"
-df_date = pd.read_csv(path + "0000" + ".csv", index_col=0, parse_dates=True)
+df_date = pd.read_csv(path + "0000" + ".csv")
+if day_behind > 0:
+    df_date = df_date[: (-1 * day_behind)]
+df_date["DATE"] = pd.to_datetime(df_date["DATE"])
+df_date = df_date.sort_values("DATE").set_index("DATE")
 df_date = df_date.add_prefix("N")
 df_date.drop("NVOL", axis=1, inplace=True)
 
@@ -191,12 +134,14 @@ for i, j, scale in zip(data_j["code"], data_j["indus"], data_j["scale"]):
     l = str(j)
     scale2 = str(scale)
     if os.path.exists(path + k + ".csv") == 1:
-        df = pd.read_csv(path + k + ".csv", index_col=0, parse_dates=True)
+        df = pd.read_csv(path + k + ".csv")
+        df["DATE"] = pd.to_datetime(df["DATE"])
+        df = df.sort_values("DATE").set_index("DATE")
+        if day_behind > 0:
+            df = df[: (-1 * day_behind)]
         df["VOL"] *= (df["OP"] + df["CP"]) / 2
-        df["LCP"] = np.log(df["CP"])
         df["LVOL"] = (np.log(df["VOL"].rolling(lday).mean()) - 10) / 10
         df_plus = pd.concat([df_date, df], axis=1)
-        df_plus = pd.concat([df_plus, add_talib(df_plus)], axis=1)
         df_plus["xOP"] = df_plus["OP"] / df_plus["NOP"]
         df_plus["xHP"] = df_plus["HP"] / df_plus["NHP"]
         df_plus["xLP"] = df_plus["LP"] / df_plus["NLP"]
@@ -204,12 +149,11 @@ for i, j, scale in zip(data_j["code"], data_j["indus"], data_j["scale"]):
         df_uni = feature(df_plus, lday)  # for predict
         # df_uni = pd.concat([feature(df_plus, lday), label(df_plus, nday)], axis = 1) #for train
         df_uni = df_uni.replace(np.inf, np.nan).replace(-np.inf, np.nan)
+        df_uni["day"] = df_uni.index.weekday
         df_uni["code"] = k
         df_uni["indus"] = l
         df_uni["scale"] = scale2
-        df_uni["sinday"] = np.sin(df_uni.index.weekday.astype("float") * 2 * np.pi / 5)
-        df_uni["cosday"] = np.cos(df_uni.index.weekday.astype("float") * 2 * np.pi / 5)
-        # df_uni['day']= df_uni.index.weekday.astype("float")
+
         xbrl_cut = XBRL_list[XBRL_list["code"] == i]
         xbrl_cut["DATE"] = pd.to_datetime(xbrl_cut["DATE"])
         xbrl_cut["DATEX"] = xbrl_cut["DATE"]
@@ -227,28 +171,31 @@ train = pd.concat(list_tr).reset_index()
 test = pd.concat(list_te).reset_index()
 del list_te, list_tr
 
-train
-
 
 def prep(df):
-    df = df[df["CP"] < 3000]
+
+    df = df[df["CP"] < 2000]
     df.drop("CP", axis=1, inplace=True)
 
-    # df.drop("dura", axis = 1, inplace = True)
-    df = df[df["dura"] <= 20]
-    df["dura"] /= 20
+    # df.drop('indus', axis = 1, inplace = True)
 
-    # df.drop("day", axis = 1, inplace = True)
     # df = pd.get_dummies(df, columns=['day'])
 
-    df.drop("scale", axis=1, inplace=True)
-    # df = pd.get_dummies(df, columns=['scale'])
+    # df = df[df['dura'] <= 20]
+    df.drop(["dura"], axis=1, inplace=True)
+    # df['dura'] /= 5
 
-    df.drop("indus", axis=1, inplace=True)
-    # df = pd.get_dummies(df, columns=['indus'])
+    # df.drop("day", axis = 1, inplace = True)
+    df = pd.get_dummies(df, columns=["day"])
+
+    # df.drop("scale", axis=1, inplace=True)
+    df = pd.get_dummies(df, columns=["scale"])
+
+    # df.drop("indus", axis=1, inplace=True)
+    df = pd.get_dummies(df, columns=["indus"])
 
     # 予測のときはdropnaしない
-    # df.dropna(inplace = True)
+    # df.dropna(inplace=True)
     # df["RATE2"] = df["RATE"]
     # df["RATE"] = (df["RATE"] > np.log(drate)) * 1
 
@@ -265,7 +212,7 @@ test = test[test["DATE"] == test["DATE"].max()].reset_index(drop=True)
 
 import pickle
 
-pre = pickle.load(open("ag_model_flat_best.mdl", "rb"))
+pre = pickle.load(open("ag_model_best.mdl", "rb"))
 
 # X_test = test.drop(['DATE', 'code'], axis = 1)
 
@@ -281,12 +228,19 @@ except:
 
 dffuture2["pred"].hist()
 
-dffuture2.sort_values("pred", ascending=False)[["code", "pred"]].head(1)
+ag_result = pd.read_csv("ag_result.csv")
 
-dffuture3 = dffuture2.sort_values("pred", ascending=False)[["code", "pred"]]
+thre = ag_result.tail(1)["thre"].item()
+print(thre)
+
+dffuture3 = (
+    dffuture2[dffuture2["pred"] >= thre]
+    .sort_values("pred", ascending=False)
+    .set_index("code")
+)
 date = test["DATE"].tail(1).item()
 print(date)
-print(dffuture3)
+print(dffuture3["pred"])
 print("全行程完了")
 
 if len(dffuture3) == 0:
@@ -299,7 +253,7 @@ else:
         str(date) + " の予報 " + str(dffuture3.reset_index().loc[:, "code"].iloc[0])
     )
     body_a = "BEST\n"
-    for i in range(1):
+    for i in range(10):
         if len(dffuture3) == i:
             break
         body_a = (
@@ -310,15 +264,9 @@ else:
             + str(dffuture3.reset_index().loc[:, "code"].iloc[i])
         )
         body_a = body_a + "/Score=" + str(dffuture3.loc[:, "pred"].iloc[i]) + "\n"
-    # body_a = body_a + ' Length = ' + str(len(dffuture3))
+    body_a = body_a + " Length = " + str(len(dffuture3))
 
 slacker = subject_a + "\n" + body_a
 
-print(slacker)
-
-try:
-    slack = slackweb.Slack(url=pd.read_csv("slackkey.csv")["0"].item())
-    slack.notify(text=slacker)
-except:
-    print(1)
+slack(slacker)
 
