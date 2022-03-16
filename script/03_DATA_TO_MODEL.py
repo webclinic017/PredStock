@@ -33,11 +33,11 @@ def slack(txt):
 os.chdir("/home/toshi/PROJECTS/PredStock")
 
 # nday = int(input('先読み日数'))
-nday = int(1)
+nday = int(3)
 slack(nday)
 
 # drate = 1 + 0.01 * float(input('変動閾値 %'))
-drate = 1 + 0.01 * float(1.6 + 0.1 * (1 - 2 * random.random()))
+drate = 1 + 0.01 * float(1.5 + 0.1 * (1 - 2 * random.random()))
 slack(drate)
 
 # # CP_CP
@@ -112,22 +112,18 @@ data_j = pd.merge(
     pd.DataFrame(XBRL_list["code"].unique().astype("str"), columns=["code"]), data_j
 )
 
-# indusx = 1
-# data_j = data_j[data_j["indus"] == indusx]
-
-data_j
-
 
 def feature(df, lday):
     #     time series
     list_ = []
 
     n_diff = [
-        "xCP",
+        # 'xCP',
         "VOL",
-        # "NOP"
+        "NCP",
+        "CP",
     ]
-    df_diff = df[n_diff]
+    df_diff = df[n_diff].add_prefix("p")
     list_.append(np.log(df_diff.pct_change() + 1))
 
     n_ratio = [
@@ -152,12 +148,16 @@ def feature(df, lday):
     #      ]])
 
     dffeat = pd.concat(list_, axis=1).replace([np.inf, -np.inf], np.nan)
-    # dffeat[['xCP', 'OP', 'HP', 'LP']] *= 30
-    # dffeat[[
-    #     'NOP',
-    #     # 'NHP',
-    #     # 'NLP'
-    #     ]] *= 60
+
+    dffeat[["pCP", "OP", "HP", "LP"]] *= 30
+    dffeat[
+        [
+            "pNCP",
+            # 'NOP',
+            # 'NHP',
+            # 'NLP'
+        ]
+    ] *= 60
     # dffeat[["MACDHIS"]] *= 0.015
     # df[["BBMID", "BBUP", "BBLO", "SMA5", "SMA25"]] *= 6
     # df[["RSI9", "RSI14"]] *= 0.03
@@ -277,45 +277,42 @@ del list_te, list_tr
 
 train.shape
 
-n_aug = 8
+# n_aug = 5
+# def augment(df):
+#     ignore_list = [
+#         "DATE",
+#         "sinday",
+#         "cosday",
+#         "CP",
+#         "code",
+#         "indus",
+#         "scale",
+#         "dura",
+#         "LVOL",
+#     ]
+#     list_augment = []
+#     r_aug = 1
+#     for n in range(n_aug):
+#         print(r_aug)
+#         df1 = df.drop(ignore_list, axis = 1)
+#         df2 = df[ignore_list]
+#         list_augment.append(pd.concat([df1 * r_aug, df2], axis = 1))
+#         r_aug = 1.1**(1 - 2 * random.random())
+#     return pd.concat(list_augment).reset_index(drop = True)
 
-
-def augment(df):
-    ignore_list = [
-        "DATE",
-        "sinday",
-        "cosday",
-        "CP",
-        "code",
-        "indus",
-        "scale",
-        "dura",
-        "LVOL",
-    ]
-    list_augment = []
-    r_aug = 1
-    for n in range(n_aug):
-        print(r_aug)
-        df1 = df.drop(ignore_list, axis=1)
-        df2 = df[ignore_list]
-        list_augment.append(pd.concat([df1 * r_aug, df2], axis=1))
-        r_aug = 1.2 ** (1 - 2 * random.random())
-    return pd.concat(list_augment).reset_index(drop=True)
-
-
-train = augment(train)
-gc.collect()
+# train = augment(train)
+# gc.collect()
 
 train.shape
 
 
 def prep(df):
-    df = df[df["CP"] < 3000]
+    df = df[df["CP"] < 2000]
     df.drop("CP", axis=1, inplace=True)
 
-    # df.drop("dura", axis = 1, inplace = True)
-    df = df[df["dura"] <= 20]
-    df["dura"] /= 20
+    df.drop("dura", axis=1, inplace=True)
+    # df = df[df['dura'] <= 20]
+    # df['dura'] /= 20
 
     # df.drop("day", axis = 1, inplace = True)
     # df = pd.get_dummies(df, columns=['day'])
@@ -443,7 +440,7 @@ hyperparameters = {
         "ag_args_fit": {"num_gpus": 1},
         "ag_args_ensemble": {"num_folds_parallel": 1},
     },
-    "LR": {"ag_args_ensemble": {"num_folds_parallel": 1}},
+    "LR": {"ag_args_ensemble": {"num_folds_parallel": 12}},
     # 'XGB': xgb_options,
     # 'CAT': cat_options,
     # 'GBM': gbm_options,
@@ -459,7 +456,7 @@ hyperparameters = {
     "GBM": [
         {
             "ag_args_fit": {"num_gpus": 1},
-            "ag_args_ensemble": {"num_folds_parallel": 5},
+            "ag_args_ensemble": {"num_folds_parallel": 1},
             "extra_trees": True,
             "ag_args": {"name_suffix": "XT"},
         },
@@ -467,10 +464,17 @@ hyperparameters = {
         # 'GBMLarge',
     ],
     # 'XT': {},
-    # 'NN_TORCH': {'ag_args_fit': {'num_gpus': 1}, "MXNET_CUDNN_LIB_CHECKING" : 0},
-    # 'FASTAI': {'ag_args_fit': {'num_gpus': 1}},
+    "NN_TORCH": {
+        "ag_args_fit": {"num_gpus": 1},
+        "ag_args_ensemble": {"num_folds_parallel": 2},
+    },
+    "FASTAI": {
+        "ag_args_fit": {"num_gpus": 1},
+        "ag_args_ensemble": {"num_folds_parallel": 2},
+    },
     # 'TRANSF': {
     #     'ag_args_fit': {'num_gpus': 1},
+    #     "ag_args_ensemble": {"num_folds_parallel": 1},
     #     "batch_size": 4096,
     #     "d_size": 16,
     #     },
