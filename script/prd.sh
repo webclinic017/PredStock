@@ -1,5 +1,6 @@
 #!/bin/sh
-
+apt update
+apt upgrade -y
 rm /home/toshi/PROJECTS/PredStock/data_j.xls
 wget https://www.jpx.co.jp/markets/statistics-equities/misc/tvdivq0000001vg2-att/data_j.xls -P /home/toshi/PROJECTS/PredStock
 chown -R toshi /home/toshi/PROJECTS/PredStock/data_j.xls
