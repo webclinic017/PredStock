@@ -287,6 +287,7 @@ dgroup = train_b.drop_duplicates("DATE").sort_values("DATE").reset_index(drop=Tr
 dgroup["group"] = (n * dgroup.index / (dgroup.index.max() + 1)).astype(int)
 dgroup = dgroup[["DATE", "group"]]
 train_b = pd.merge(train_b, dgroup)
+del train
 gc.collect()
 
 from autogluon.tabular import TabularPredictor
