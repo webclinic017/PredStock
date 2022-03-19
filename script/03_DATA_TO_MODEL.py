@@ -37,7 +37,7 @@ nday = int(3)
 slack(nday)
 
 # drate = 1 + 0.01 * float(input('変動閾値 %'))
-drate = 1 + 0.01 * float(2 + 0.1 * (1 - 2 * random.random()))
+drate = 1 + 0.01 * float(2 + 0.2 * (1 - 2 * random.random()))
 slack(drate)
 
 # # CP_CP
@@ -213,13 +213,14 @@ n_aug = 2
 def augment(df):
     ignore_list = ["DATE", "day", "CP", "code", "indus", "scale", "dura", "LVOL"]
     list_augment = []
-    r_aug = 1
+    f_aug = 1
     for n in range(n_aug):
-        print(r_aug)
         df1 = df.drop(ignore_list, axis=1)
+        if f_aug == 1:
+            df1 = df1.multiply(1.2 ** (1 - 2 * np.random.rand(len(train))), axis=0)
         df2 = df[ignore_list]
-        list_augment.append(pd.concat([df1 * r_aug, df2], axis=1))
-        r_aug = 1.1 ** (1 - 2 * random.random())
+        list_augment.append(pd.concat([df1, df2], axis=1))
+        f_aug = 1
     return pd.concat(list_augment).reset_index(drop=True)
 
 
@@ -287,7 +288,8 @@ dgroup = train_b.drop_duplicates("DATE").sort_values("DATE").reset_index(drop=Tr
 dgroup["group"] = (n * dgroup.index / (dgroup.index.max() + 1)).astype(int)
 dgroup = dgroup[["DATE", "group"]]
 train_b = pd.merge(train_b, dgroup)
-del train
+train = train_b
+del dgroup, train_b
 gc.collect()
 
 from autogluon.tabular import TabularPredictor
@@ -359,11 +361,11 @@ cat_options = [
 ]
 
 xt_options = [
-    {"n_estimators": 20, "n_jobs": -1, "ag_args": {"name_suffix": "A"}},
-    {"n_estimators": 30, "n_jobs": -1, "ag_args": {"name_suffix": "B"}},
-    {"n_estimators": 40, "n_jobs": -1, "ag_args": {"name_suffix": "C"}},
-    {"n_estimators": 50, "n_jobs": -1, "ag_args": {"name_suffix": "D"}},
-    {"n_estimators": 70, "n_jobs": -1, "ag_args": {"name_suffix": "E"}},
+    {"n_estimators": 20, "n_jobs": 1, "ag_args": {"name_suffix": "A"}},
+    {"n_estimators": 30, "n_jobs": 1, "ag_args": {"name_suffix": "B"}},
+    {"n_estimators": 40, "n_jobs": 1, "ag_args": {"name_suffix": "C"}},
+    {"n_estimators": 50, "n_jobs": 1, "ag_args": {"name_suffix": "D"}},
+    {"n_estimators": 70, "n_jobs": 1, "ag_args": {"name_suffix": "E"}},
 ]
 
 hyperparameters = {
@@ -371,7 +373,7 @@ hyperparameters = {
         "ag_args_fit": {"num_gpus": 1},
         "ag_args_ensemble": {"num_folds_parallel": 1},
     },
-    "LR": {"ag_args_ensemble": {"num_folds_parallel": 12}},
+    "LR": {"ag_args_ensemble": {"num_folds_parallel": 6}},
     "XGB": xgb_options,
     # 'CAT': cat_options,
     # 'GBM': gbm_options,
@@ -413,10 +415,10 @@ new = TabularPredictor(
 )
 
 new.fit(
-    train_data=train_b.drop(["DATE", "code", "RATE2"], axis=1),
+    train_data=train.drop(["DATE", "code", "RATE2"], axis=1),
     num_bag_folds=10,
     num_bag_sets=1,
-    num_stack_levels=2,
+    num_stack_levels=1,
     hyperparameters=hyperparameters,
     # hyperparameter_tune_kwargs = hyperparameter_tune_kwargs,
     save_space=True,
