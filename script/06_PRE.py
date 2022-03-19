@@ -120,15 +120,15 @@ def feature(df, lday):
     for name in n_ratio:
         list_.append(pd.DataFrame(np.log(df[name]/df['CP']), columns = {name}))
 
-    n_ratio2 = ['NOP', 'NHP', 'NLP']
-    for name in n_ratio2:
-        list_.append(pd.DataFrame(np.log(df[name]/df['NCP']), columns = {name}))
+    # n_ratio2 = ['NOP', 'NHP', 'NLP']
+    # for name in n_ratio2:
+    #     list_.append(pd.DataFrame(np.log(df[name]/df['NCP']), columns = {name}))
 
     df_ratio = pd.concat(list_, axis = 1)
     dffeat = pd.concat([df_diff, df_ratio], axis = 1).replace([np.inf, -np.inf], np.nan)
     dffeat[['pCP', 'pNCP', 'OP', 'HP', 'LP']] *= 30
     # dffeat[['xOP', 'xHP', 'xLP']] *= 30
-    dffeat[['NOP', 'NHP', 'NLP']] *= 60
+    # dffeat[['NOP', 'NHP', 'NLP']] *= 60
 
     
     list_2 = []
@@ -214,7 +214,7 @@ del list_te, list_tr
 train.shape
 
 # %%
-n_aug = 5
+n_aug = 7
 def augment(df):
     ignore_list = [
         "DATE",
@@ -227,11 +227,11 @@ def augment(df):
         "LVOL",
     ]
     list_augment = []
-    f_aug = 0
+    f_aug = 1
     for n in range(n_aug):
         df1 = df.drop(ignore_list, axis = 1)
         if f_aug == 1:
-            df1 = df1.multiply(1.2**(1 - 2 * np.random.rand(len(train))), axis = 0)
+            df1 = df1.multiply(1.1**(1 - 2 * np.random.rand(len(train))), axis = 0)
         df2 = df[ignore_list]
         list_augment.append(pd.concat([df1, df2], axis = 1))
         f_aug = 1
@@ -296,7 +296,7 @@ slack("test = " + str(len(test)))
 # train.hist(figsize = (30,30), bins = 20)
 
 # %%
-n = 5
+n = 10
 # さらに間引く
 n_sample = 5000000
 if len(train) > n_sample:
