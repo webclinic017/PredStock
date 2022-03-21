@@ -214,7 +214,7 @@ del list_te, list_tr
 train.shape
 
 # %%
-n_aug = 7
+n_aug = 6
 def augment(df):
     ignore_list = [
         "DATE",
