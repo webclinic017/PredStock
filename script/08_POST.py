@@ -40,6 +40,9 @@ test = pd.read_csv("test.csv")
 new = pickle.load(open('ag_model_new.mdl', 'rb'))
 
 # %%
+holdout = len(test["DATE"].unique())
+
+# %%
 # testで予測
 gc.collect()
 try:
