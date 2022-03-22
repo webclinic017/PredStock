@@ -20,6 +20,8 @@ conda activate ag2
 ipython /home/toshi/PROJECTS/PredStock/script/06_PRE.py
 ipython /home/toshi/PROJECTS/PredStock/script/07_TRAIN.py
 ipython /home/toshi/PROJECTS/PredStock/script/08_POST.py
+ipython /home/toshi/PROJECTS/PredStock/script/07_TRAIN_REG.py
+ipython /home/toshi/PROJECTS/PredStock/script/08_POST.py
 chown -R toshi /home/toshi/PROJECTS/PredStock/AutogluonModels/*
 ipython /home/toshi/PROJECTS/PredStock/script/02_PREDICT_21_12_22AGREG.py
 # rsync /home/toshi/PROJECTS/PredStock/ /mnt/qnap/home/PROJECTS/PredStock/ -avh --delete

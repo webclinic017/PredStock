@@ -312,7 +312,8 @@ del dgroup, train
 gc.collect()
 
 # %%
-train_b.drop(["DATE", "code", "RATE2"], axis=1).to_csv("train.csv")
+train_b.drop(["DATE", "code", "RATE2"], axis=1).to_csv("train_cla.csv")
+train_b.drop(["DATE", "code", "RATE"], axis=1).to_csv("train_reg.csv")
 test.to_csv("test.csv")
 
 # %%
