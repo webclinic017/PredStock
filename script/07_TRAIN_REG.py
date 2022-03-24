@@ -129,7 +129,7 @@ hyperparameters = {
         # 'GBMLarge',
     ],
     # 'XT': {"ag_args_ensemble": {"num_folds_parallel": 1}},
-    'NN_TORCH': {'ag_args_fit': {'num_gpus': 1}, "ag_args_ensemble": {"num_folds_parallel": 1}},
+    'NN_TORCH': {'ag_args_fit': {'num_gpus': 1}, "ag_args_ensemble": {"num_folds_parallel": 3}},
     # 'FASTAI': {'ag_args_fit': {'num_gpus': 1}, "ag_args_ensemble": {"num_folds_parallel": 2}},
     # 'TRANSF': {
     #     'ag_args_fit': {'num_gpus': 1},
