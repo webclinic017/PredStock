@@ -115,7 +115,7 @@ plt.title('new=' + str(score_new) +' / pre='+ str(score_pre))
 plt.grid()
 fig.savefig("hist_positive_ag.png")
 
-if score_new >= score_pre:
+if score_new > score_pre:
     pickle.dump(new, open('ag_model_best.mdl', 'wb'))
     print("モデル更新完了")
     score_best = score_new
