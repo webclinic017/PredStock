@@ -26,7 +26,7 @@ from autogluon.tabular import TabularPredictor
 from autogluon.core.dataset import TabularDataset
 from autogluon.tabular.models.knn.knn_rapids_model import KNNRapidsModel
 
-train_b = TabularDataset('train_reg.csv').dropna()
+train_b = TabularDataset('train_reg.csv')
 
 save_path = None
 label_column = "RATE2"
@@ -125,7 +125,7 @@ hyperparameters = {
             "extra_trees": True,
             "ag_args": {"name_suffix": "XT"},
         },
-        {"ag_args_fit": {"num_gpus": 1}, "ag_args_ensemble": {"num_folds_parallel": 1}},
+        {"ag_args_fit": {"num_gpus": 1}, "ag_args_ensemble": {"num_folds_parallel": 3}},
         # 'GBMLarge',
     ],
     # 'XT': {"ag_args_ensemble": {"num_folds_parallel": 1}},
