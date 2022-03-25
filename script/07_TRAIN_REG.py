@@ -30,9 +30,9 @@ train_b = TabularDataset('train_reg.csv')
 
 save_path = None
 label_column = "RATE2"
-# metric = 'r2'
+metric = 'r2'
 # metric = 'f1'
-metric = "roc_auc"
+# metric = "roc_auc"
 # metric = 'log_loss'
 
 gbm_options = [
