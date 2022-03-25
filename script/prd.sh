@@ -30,7 +30,8 @@ ipython /home/toshi/PROJECTS/PredStock/script/00_SCRAPER14.py
 ipython /home/toshi/PROJECTS/PredStock/script/00_SCRAPER14.py
 chown -R toshi /home/toshi/PROJECTS/PredStock/00-JPRAW/*
 chown -R toshi /home/toshi/PROJECTS/PredStock/00-JPRAW/NEW300/*
-ipython /home/toshi/PROJECTS/PredStock/script/02_PREDICT_21_12_22AGREG.py
+ipython /home/toshi/PROJECTS/PredStock/script/05_PRE.py
+ipython /home/toshi/PROJECTS/PredStock/script/06_PREDICT.py
 # ipython /home/toshi/PROJECTS/PredStock/script/03_DATA_TO_MODEL.py
 # chown -R toshi /home/toshi/PROJECTS/PredStock/AutogluonModels/*
 rsync /home/toshi/PROJECTS/PredStock/ /mnt/qnap/home/PROJECTS/PredStock/ -avh --delete

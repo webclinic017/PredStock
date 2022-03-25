@@ -26,7 +26,7 @@ from autogluon.tabular import TabularPredictor
 from autogluon.core.dataset import TabularDataset
 from autogluon.tabular.models.knn.knn_rapids_model import KNNRapidsModel
 
-train_b = TabularDataset('train_reg.csv')
+train_b = TabularDataset('train_reg.csv').dropna()
 
 save_path = None
 label_column = "RATE2"

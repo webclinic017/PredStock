@@ -99,7 +99,7 @@ data_j['code'] = data_j['code'].astype('str')
 data_j = data_j.append({'code': '0000', 'indus': np.nan, 'scale': np.nan}, ignore_index=True).sort_values('code').reset_index(drop = True)
 code_list  = data_j.drop(["indus", "scale"], axis=1).reset_index(drop = True)
 
-# 産業コードをしぼる
+# # 産業コードをしぼる
 # data_j = data_j[data_j['indus'] == 1]
 
 # %%
@@ -120,9 +120,9 @@ def feature(df, lday):
     for name in n_ratio:
         list_.append(pd.DataFrame(np.log(df[name]/df['CP']), columns = {name}))
 
-    # n_ratio2 = ['NOP', 'NHP', 'NLP']
-    # for name in n_ratio2:
-    #     list_.append(pd.DataFrame(np.log(df[name]/df['NCP']), columns = {name}))
+    n_ratio2 = ['NOP', 'NHP', 'NLP']
+    for name in n_ratio2:
+        list_.append(pd.DataFrame(np.log(df[name]/df['NCP']), columns = {name}))
 
     df_ratio = pd.concat(list_, axis = 1)
     dffeat = pd.concat([df_diff, df_ratio], axis = 1).replace([np.inf, -np.inf], np.nan)
@@ -214,7 +214,7 @@ del list_te, list_tr
 train.shape
 
 # %%
-n_aug = 6
+n_aug = 1
 def augment(df):
     ignore_list = [
         "DATE",
@@ -270,7 +270,7 @@ def prep(df):
     df = pd.get_dummies(df, columns=['indus'])
 
     # 予測のときはdropnaしない
-    df.dropna(inplace=True)
+    # df.dropna(inplace=True)
     df["RATE2"] = df["RATE"]
     df["RATE"] = (df["RATE"] > np.log(drate)) * 1
 
@@ -281,19 +281,12 @@ def prep(df):
 # %%
 train = prep(train)
 test = prep(test)
-gc.collect()
-
-# %%
-train.shape
 
 # %%
 slack("train = " + str(len(train)))
 
 # %%
 slack("test = " + str(len(test)))
-
-# %%
-# train.hist(figsize = (30,30), bins = 20)
 
 # %%
 n = 10
