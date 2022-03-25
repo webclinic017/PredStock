@@ -231,7 +231,7 @@ def augment(df):
     for n in range(n_aug):
         df1 = df.drop(ignore_list, axis = 1)
         if f_aug == 1:
-            df1 = df1.multiply(1.1**(1 - 2 * np.random.rand(len(train))), axis = 0)
+            df1 = df1.multiply(1.1 ** np.random.normal(size = len(train)), axis = 0)
         df2 = df[ignore_list]
         list_augment.append(pd.concat([df1, df2], axis = 1))
         f_aug = 1
