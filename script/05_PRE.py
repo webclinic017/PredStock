@@ -120,15 +120,15 @@ def feature(df, lday):
     for name in n_ratio:
         list_.append(pd.DataFrame(np.log(df[name]/df['CP']), columns = {name}))
 
-    n_ratio2 = ['NOP', 'NHP', 'NLP']
-    for name in n_ratio2:
-        list_.append(pd.DataFrame(np.log(df[name]/df['NCP']), columns = {name}))
+    # n_ratio2 = ['NOP', 'NHP', 'NLP']
+    # for name in n_ratio2:
+    #     list_.append(pd.DataFrame(np.log(df[name]/df['NCP']), columns = {name}))
 
     df_ratio = pd.concat(list_, axis = 1)
     dffeat = pd.concat([df_diff, df_ratio], axis = 1).replace([np.inf, -np.inf], np.nan)
     dffeat[['pCP', 'pNCP', 'OP', 'HP', 'LP']] *= 30
     # dffeat[['xOP', 'xHP', 'xLP']] *= 30
-    dffeat[['NOP', 'NHP', 'NLP']] *= 60
+    # dffeat[['NOP', 'NHP', 'NLP']] *= 60
 
     
     list_2 = []
@@ -214,7 +214,7 @@ del list_te, list_tr
 train.shape
 
 # %%
-n_aug = 1
+n_aug = 6
 def augment(df):
     ignore_list = [
         "DATE",
@@ -289,7 +289,7 @@ slack("train = " + str(len(train)))
 slack("test = " + str(len(test)))
 
 # %%
-n = 10
+n = 5
 # さらに間引く
 n_sample = 5000000
 if len(train) > n_sample:
