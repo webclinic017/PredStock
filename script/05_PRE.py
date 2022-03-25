@@ -263,8 +263,8 @@ def prep(df):
     # df.drop("day", axis = 1, inplace = True)
     df = pd.get_dummies(df, columns=['day'])
 
-    # df.drop("scale", axis=1, inplace=True)
-    df = pd.get_dummies(df, columns=['scale'])
+    df.drop("scale", axis=1, inplace=True)
+    # df = pd.get_dummies(df, columns=['scale'])
 
     # df.drop("indus", axis=1, inplace=True)
     df = pd.get_dummies(df, columns=['indus'])
