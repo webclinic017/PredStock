@@ -128,7 +128,7 @@ def feature(df, lday):
     dffeat = pd.concat([df_diff, df_ratio], axis = 1).replace([np.inf, -np.inf], np.nan)
     dffeat[['pCP', 'pNCP', 'OP', 'HP', 'LP']] *= 30
     # dffeat[['xOP', 'xHP', 'xLP']] *= 30
-    # dffeat[['NOP', 'NHP', 'NLP']] *= 60
+    dffeat[['NOP', 'NHP', 'NLP']] *= 60
 
     
     list_2 = []
