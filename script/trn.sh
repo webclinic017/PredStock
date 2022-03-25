@@ -17,7 +17,7 @@ unset __conda_setup
 
 chown -R toshi /home/toshi/PROJECTS/PredStock/AutogluonModels/*
 conda activate ag2
-ipython /home/toshi/PROJECTS/PredStock/script/06_PRE.py
+ipython /home/toshi/PROJECTS/PredStock/script/05_PRE.py
 ipython /home/toshi/PROJECTS/PredStock/script/07_TRAIN.py
 ipython /home/toshi/PROJECTS/PredStock/script/08_POST.py
 ipython /home/toshi/PROJECTS/PredStock/script/07_TRAIN_REG.py
