@@ -48,7 +48,7 @@ gc.collect()
 try:
     df_te_new = pd.concat([test,new.predict_proba(test).rename(columns = {1: 'pred'})['pred']], axis = 1)
 except:
-    df_te_new = pd.concat([test,pd.DataFrame(new.predict(test)).rename(columns = {'RATE': 'pred'})], axis = 1)
+    df_te_new = pd.concat([test,pd.DataFrame(new.predict(test)).rename(columns = {'RATE2': 'pred'})], axis = 1)
 
 # %%
 #bestモデルを読んで予測。読めない、あるいは説明データに対応できない場合は、新モデルで上書きする。
@@ -57,7 +57,7 @@ try:
     try:
         df_te_pre = pd.concat([test,pre.predict_proba(test).rename(columns = {1: 'pred'})['pred']], axis = 1)
     except:
-        df_te_pre = pd.concat([test,pd.DataFrame(pre.predict(test)).rename(columns = {'RATE': 'pred'})], axis = 1)
+        df_te_pre = pd.concat([test,pd.DataFrame(pre.predict(test)).rename(columns = {'RATE2': 'pred'})], axis = 1)
     slack('旧モデル予測完了')
 except:
     slack('旧モデル読み込みおよび予測失敗、新モデルで上書き')
