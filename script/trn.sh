@@ -24,5 +24,4 @@ ipython /home/toshi/PROJECTS/PredStock/script/07_TRAIN_REG.py
 ipython /home/toshi/PROJECTS/PredStock/script/08_POST.py
 chown -R toshi /home/toshi/PROJECTS/PredStock/AutogluonModels/*
 ipython /home/toshi/PROJECTS/PredStock/script/06_PREDICT.py
-# rsync /home/toshi/PROJECTS/PredStock/ /mnt/qnap/home/PROJECTS/PredStock/ -avh --delete
 ipython /home/toshi/PROJECTS/PredStock/script/99_SHUTDOWN.py
