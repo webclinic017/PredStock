@@ -140,3 +140,4 @@ dask-worker-space/
 *.xls
 *.xlsx
 *.mdl
+*.npy
