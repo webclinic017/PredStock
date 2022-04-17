@@ -3,9 +3,9 @@ channels:
   - nvidia
   - conda-forge
 dependencies:
+  - python
   - rapids=22.02
-  - python=3.8
-  - cudatoolkit=11.5
+  - cudatoolkit=11.2
   - dask-sql
   - cudnn
   - nccl
@@ -25,3 +25,6 @@ dependencies:
     - slackweb
     - beautifulsoup4
     - html5lib
+    - yfinance
+    - polars
+    
