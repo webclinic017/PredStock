@@ -141,3 +141,4 @@ dask-worker-space/
 *.xlsx
 *.mdl
 *.npy
+*.parquet
