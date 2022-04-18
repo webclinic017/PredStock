@@ -164,7 +164,7 @@ def train(path, name, dropname):
         #     "ag_args_fit": {"num_gpus": 1},
         #     "ag_args_ensemble": {"num_folds_parallel": 1},
         # },
-        "LR": {"ag_args_ensemble": {"num_folds_parallel": 1}},
+        "LR": {"ag_args_ensemble": {"num_folds_parallel": 4}},
         "XGB": {
             "ag_args_fit": {"num_gpus": 1},
             "ag_args_ensemble": {"num_folds_parallel": 1},
@@ -173,19 +173,19 @@ def train(path, name, dropname):
         #     "ag_args_fit": {"num_gpus": 1},
         #     "ag_args_ensemble": {"num_folds_parallel": 1},
         # },
-        "GBM": [
-            {
-                "ag_args_fit": {"num_gpus": 1},
-                "ag_args_ensemble": {"num_folds_parallel": 3},
-                "extra_trees": True,
-                "ag_args": {"name_suffix": "XT"},
-            },
-            # {
-            #     "ag_args_fit": {"num_gpus": 1},
-            #     "ag_args_ensemble": {"num_folds_parallel": 3},
-            # },
-            # 'GBMLarge',
-        ],
+        # "GBM": [
+        #     {
+        #         "ag_args_fit": {"num_gpus": 1},
+        #         "ag_args_ensemble": {"num_folds_parallel": 3},
+        #         "extra_trees": True,
+        #         "ag_args": {"name_suffix": "XT"},
+        #     },
+        #     # {
+        #     #     "ag_args_fit": {"num_gpus": 1},
+        #     #     "ag_args_ensemble": {"num_folds_parallel": 3},
+        #     # },
+        #     # 'GBMLarge',
+        # ],
         # "XT": {"ag_args_ensemble": {"num_folds_parallel": 1}},
         # 'NN_TORCH': {'ag_args_fit': {'num_gpus': 1}, "ag_args_ensemble": {"num_folds_parallel": 3}},
         # 'FASTAI': {'ag_args_fit': {'num_gpus': 1}, "ag_args_ensemble": {"num_folds_parallel": 3}},
@@ -211,3 +211,6 @@ def train(path, name, dropname):
         save_space=True,
     )
     return new
+
+if __name__ == '__main__':
+    print("これは自作モジュールです")

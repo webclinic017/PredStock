@@ -2,6 +2,7 @@
 import pandas as pd
 import numpy as np
 import random
+import scipy
 import math
 import os
 # import seaborn as sns
@@ -10,13 +11,17 @@ import talib
 from tqdm import tqdm
 import gc
 import slackweb
+
 import pickle
 # from prophet import Prophet
-from sklearnex import patch_sklearn
-patch_sklearn()
+from sklearn.metrics import r2_score
+from joblib import Parallel, delayed
+import pyarrow as pa
+import pyarrow.parquet as pq
 
 # %%
 os.chdir('/home/toshi/PROJECTS/PredStock')
+from  common import train
 
 # %%
 def slack(txt):
@@ -28,38 +33,30 @@ def slack(txt):
         print("slack_error")
 
 # %%
-test = pd.read_csv("test.csv").drop(["RATE", "RATE2", "Unnamed: 0"], axis = 1)
+test = pq.read_table("01_PROC/test1.parquet").to_pandas().dropna()
+test["Date"] = pd.to_datetime(test["Date"])
 
 # %%
-# 今日の日付のものだけ
-test = test[test['DATE'] ==test['DATE'].max()].reset_index(drop = True)
+test = test[test["Date"] == test["Date"].max()]
 
 # %%
-import pickle
-pre = pickle.load(open('ag_model_best.mdl', 'rb'))
+test
 
 # %%
-try:
-    dffuture2 = pd.concat([test,pre.predict_proba(test).rename(columns = {1: 'pred'})['pred']], axis = 1)
-except:
-    dffuture2 = pd.concat([test,pd.DataFrame(pre.predict(test)).rename(columns = {'RATE': 'pred'})], axis = 1)
+pre = pickle.load(open('oc3_best.mdl', 'rb'))
+
+# %%
+dffuture2 = pd.concat([test,pd.DataFrame(pre.predict(test)).rename(columns = {'oc3r': 'pred'})], axis = 1)
+
+# %%
+dffuture2
 
 # %%
 dffuture2["pred"].hist()
 
 # %%
-ag_result = pd.read_csv('ag_result.csv')
-
-# %%
-thre = ag_result.tail(1)['thre'].item()
-print(thre)
-
-# %%
-dffuture3 = dffuture2[dffuture2['pred'] >= thre].sort_values('pred', ascending = False).set_index('code')
-date = test['DATE'].tail(1).item()
-print(date)
-print(dffuture3['pred'])
-print('全行程完了')
+dffuture3 = dffuture2.sort_values("pred")[["code", "pred"]].reset_index(drop=True).head(2)
+date = test['Date'].tail(1).item()
 
 # %%
 if len(dffuture3) == 0:
