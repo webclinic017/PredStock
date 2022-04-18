@@ -3,8 +3,8 @@ channels:
   - nvidia
   - conda-forge
 dependencies:
-  - python
-  - rapids=22.02
+  - python=3.8
+  - rapids=22.04
   - cudatoolkit=11.2
   - dask-sql
   - cudnn
