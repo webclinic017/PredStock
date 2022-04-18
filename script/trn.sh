@@ -23,7 +23,7 @@ unset __conda_setup
 conda activate ag
 chown -R toshi /home/toshi/PROJECTS/PredStock/AutogluonModels/*
 
-ipython /home/toshi/PROJECTS/PredStock/script/0a_HISTORY.py
+# ipython /home/toshi/PROJECTS/PredStock/script/0a_HISTORY.py
 ipython /home/toshi/PROJECTS/PredStock/script/1a_MOMENTUM.py
 ipython /home/toshi/PROJECTS/PredStock/script/1b_BETA.py
 ipython /home/toshi/PROJECTS/PredStock/script/1c_XDAY.py
@@ -37,4 +37,4 @@ ipython /home/toshi/PROJECTS/PredStock/script/3a_POST.py
 ipython /home/toshi/PROJECTS/PredStock/script/4a_PREDICT.py
 
 chown -R toshi /home/toshi/PROJECTS/PredStock/AutogluonModels/*
-# ipython /home/toshi/PROJECTS/PredStock/script/99_SHUTDOWN.py
+ipython /home/toshi/PROJECTS/PredStock/script/99_SHUTDOWN.py
