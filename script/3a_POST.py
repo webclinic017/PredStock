@@ -66,8 +66,8 @@ def get_worst(df, n):
     return df.sort_values("pred", ascending=False).tail(n)
 
 # %%
-score_new = df_te_new.groupby("Date").apply(get_best, 2)["oc3"].mean()
-score_pre = df_te_pre.groupby("Date").apply(get_best, 2)["oc3"].mean() 
+score_new = df_te_new.groupby("Date").apply(get_best, 1)["oc3"].mean()
+score_pre = df_te_pre.groupby("Date").apply(get_best, 1)["oc3"].mean() 
 
 if score_new >= score_pre:
     pickle.dump(new, open('ag_model_best.mdl', 'wb'))
@@ -84,7 +84,7 @@ slack("score_new = " + str(score_new))
 slack("score_pre = " + str(score_pre))
 
 # %%
-def visu(df, name):
+def visu(df, name, score):
     fig = plt.figure(figsize = (15,7), facecolor="white")
     ilist = [1, 2, 5, 10, 20, 50, 100, 200]
     for i in ilist:
@@ -106,13 +106,14 @@ def visu(df, name):
         pb["oc3"] = pb["oc3"].cumsum()
         plt.scatter(pb["Date"], pb["oc3"], s = 5)
     plt.legend(ilist + ilist)
+    plt.title("score =" + str(score))
     fig.savefig(name + ".png")
 
 # %%
-visu(df_te_new, "pn_new")
+visu(df_te_new, "pn_new", score_new)
 
 # %%
-visu(df_te_pre, "pn_pre")
+visu(df_te_pre, "pn_pre", score_pre)
 
 # %%
 
