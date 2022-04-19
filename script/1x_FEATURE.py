@@ -126,7 +126,7 @@ dfts = pd.merge(dfts, divsplit, on = ["code", "Date"])
 
 # %%
 scale = pq.read_table("01_PROC/scale.parquet").to_pandas()
-scale["scale"] = np.log(scale["scale"]) * 0.05
+scale["scale"] = np.log(scale["scale"]) * 0.1 - 2.4
 
 # %%
 scale.hist()
@@ -135,8 +135,8 @@ scale.hist()
 scale
 
 # %%
-smax = scale["scale"].quantile(0.9)
-smin = scale["scale"].quantile(0.1)
+smax = scale["scale"].quantile(1)
+smin = scale["scale"].quantile(0.2)
 scale = scale[scale["scale"] <= smax]
 scale = scale[scale["scale"] >= smin]
 
