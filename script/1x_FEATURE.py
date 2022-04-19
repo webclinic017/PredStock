@@ -128,7 +128,7 @@ scale = scale[scale["scale"] > scale["scale"].quantile(0.25)]
 
 # %%
 dfts = pd.merge(dfts, scale, on = "code")
-dfts.drop("scale", inplace = True)
+# dfts.drop("scale", inplace = True)
 
 # %%
 dfts['day']= dfts["Date"].dt.weekday

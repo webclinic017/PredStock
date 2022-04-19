@@ -169,10 +169,10 @@ def train(path, name, dropname):
             "ag_args_fit": {"num_gpus": 1},
             "ag_args_ensemble": {"num_folds_parallel": 1},
         },
-        # "CAT": {
-        #     "ag_args_fit": {"num_gpus": 1},
-        #     "ag_args_ensemble": {"num_folds_parallel": 1},
-        # },
+        "CAT": {
+            "ag_args_fit": {"num_gpus": 1},
+            "ag_args_ensemble": {"num_folds_parallel": 1},
+        },
         "GBM": [
             {
                 "ag_args_fit": {"num_gpus": 1},
@@ -186,8 +186,8 @@ def train(path, name, dropname):
             },
             # 'GBMLarge',
         ],
-        "XT": {"ag_args_ensemble": {"num_folds_parallel": 1}},
-        'NN_TORCH': {'ag_args_fit': {'num_gpus': 1}, "ag_args_ensemble": {"num_folds_parallel": 3}},
+        # "XT": {"ag_args_ensemble": {"num_folds_parallel": 1}},
+        # 'NN_TORCH': {'ag_args_fit': {'num_gpus': 1}, "ag_args_ensemble": {"num_folds_parallel": 3}},
         # 'FASTAI': {'ag_args_fit': {'num_gpus': 1}, "ag_args_ensemble": {"num_folds_parallel": 3}},
         # 'TRANSF': {
         #     'ag_args_fit': {'num_gpus': 1},
