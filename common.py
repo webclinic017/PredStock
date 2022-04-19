@@ -214,7 +214,7 @@ def train(path, name, dropname):
         train_data=train_b.drop(dropname, axis = 1),
         num_bag_folds=10,
         num_bag_sets=1,
-        num_stack_levels=1,
+        num_stack_levels=2,
         hyperparameters=hyperparameters,
         # hyperparameter_tune_kwargs = hyperparameter_tune_kwargs,
         save_space=True,
