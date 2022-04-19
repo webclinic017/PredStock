@@ -59,11 +59,9 @@ df = df.drop(["Open", "High", "Low", "Close", "Volume", "Dividends", "Stock Spli
 df[["pClose",  "rOpen", "rHigh", "rLow", "pClose_n", "pClose_y"]] *= 10
 df["pxVolume"] *= 0.4
 df["jpypClose"] *= 50
-df["daymm"] *= 5
-df["daybeta"] *= 2
 
 # %%
-clipname = ["pClose", "pxVolume", "rOpen", "rHigh", "rLow", "pClose_n", "jpypClose", "betajpy", "pClose_y", "daymm", "daybeta"]
+clipname = ["pClose", "pxVolume", "rOpen", "rHigh", "rLow", "pClose_n", "jpypClose", "betajpy", "pClose_y", "daybeta"]
 df[clipname] = df[clipname].clip(lower=-2, upper=2)
 
 # %%

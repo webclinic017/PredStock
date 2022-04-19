@@ -30,17 +30,17 @@ from  common import get_data_j, reader, mmt, dfall
 path = "0a_HISTORY/"
 
 # %%
-ndays = 365
+nlist = [365, 90, 30]
 
 # %%
-df = dfall(3650, path)
+df = dfall(2190, path)
 df["Date"] = pd.to_datetime(df["Date"])
 
 # %%
 lista = []
 for i in df["code"].unique():
     df_cut = df[df["code"] == i]
-    lista.append(mmt(df_cut, ndays))
+    lista.append(mmt(df_cut, nlist))
 
 # %%
 df2 = pd.concat(lista).dropna()

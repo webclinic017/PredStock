@@ -103,10 +103,16 @@ def pct(df):
 
 
 # モーメンタム計算
-def mmt(df, ndays):
-    df["Close_past"] = df["Close"].shift(ndays)
-    df["mm"] = np.log(df["Close"] / df["Close_past"])
-    return df[["Date", "code", "mm"]]
+def mmt(df, nlist):
+    snlist = [str(n) for n in nlist]
+    listn = ["Date", "code"]
+    for n in range(len(nlist)):
+        x = nlist[n]
+        s = snlist[n]
+        df["Close_past"] = df["Close"].shift(x)
+        df["mm" + s] = np.log(df["Close"] / df["Close_past"])
+        listn.append("mm" +s)
+    return df[listn]
 
 
 def slack(txt):

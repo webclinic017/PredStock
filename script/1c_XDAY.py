@@ -40,12 +40,14 @@ ndays = 1825
 
 # %%
 dfall = dfall(ndays, path)
+dfall["Date"] = pd.to_datetime(dfall["Date"])
 
 # %%
 dfall
 
 # %%
 mm = pq.read_table("01_PROC/mm.parquet").to_pandas()
+mm["Date"] = pd.to_datetime(mm["Date"])
 
 # %%
 mm
@@ -57,26 +59,20 @@ beta = pq.read_table("01_PROC/beta.parquet").to_pandas()
 beta
 
 # %%
-dfall = pd.merge(dfall, mm, on = "code")
+dfall = pd.merge(dfall, mm, on = ["code", "Date"])
 dfall = pd.merge(dfall, beta, on = "code")
 
 # %%
 dfall
 
 # %%
-df2 = dfall[dfall["Date"] == datetime.date(2022, 4, 11)]
+nlist = [s for s in dfall.columns if 'mm' in s]
+nlist.append("beta")
 
 # %%
-df2
+nlist
 
 # %%
-plt.scatter(df2["mm"], df2["pClose"], alpha = 0.5)
-
-# %%
-plt.scatter(df2["beta"], df2["pClose"], alpha = 0.5)
-
-# %%
-nlist = ["mm", "beta"]
 lista = []
 for j in dfall["Date"].unique():
     listb = [j]
@@ -88,10 +84,9 @@ for j in dfall["Date"].unique():
 
 # %%
 xday = pd.DataFrame(lista, columns=["Date"] + nlist).set_index("Date")
+xday = xday.fillna(0)
 xday.index = pd.to_datetime(xday.index)
 xday = xday.add_prefix("day").reset_index()
-xday["daymm"].fillna(0, inplace=True)
-xday["daybeta"].fillna(0, inplace=True)
 
 # %%
 pq.write_table(pa.Table.from_pandas(xday), "01_PROC/xday.parquet")
@@ -105,49 +100,7 @@ xday.corr()
 # %%
 fig = plt.figure(figsize = (7,7), facecolor="white")
 # plt.plot(xday["dayvcoef"], xday["daymm"], alpha = 0.2)
-plt.scatter(xday["daybeta"], xday["daymm"], s = 2)
-
-# %%
-fig = plt.figure(figsize = (18,5), facecolor="white")
-plt.plot(xday["Date"], xday["daymm"])
-plt.scatter(xday["Date"], xday["daymm"], s = 3)
-
-# %%
-fig = plt.figure(figsize = (18,5), facecolor="white")
-plt.plot(xday["Date"], xday["daybeta"])
-plt.scatter(xday["Date"], xday["daybeta"], s = 3)
-
-# %%
-xday
-
-# %%
-df = xday.copy()
-df = df.rename(columns={"Date": "ds", "daymm": "y"})
-
-# %%
-df.tail()
-
-# %%
-m = Prophet(weekly_seasonality=True)
-# m.add_regressor('daybeta')
-m.fit(df)
-
-# %%
-future = m.make_future_dataframe(periods=1)
-
-# %%
-# future = pd.merge(future, df)
-
-# %%
-forecast = m.predict(future)
-
-# %%
-forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].tail()
-
-# %%
-
-fig1 = m.plot(forecast)
-
+plt.scatter(xday["daybeta"], xday["daymm90"], s = 2)
 
 # %%
 
