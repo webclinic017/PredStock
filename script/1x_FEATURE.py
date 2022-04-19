@@ -114,15 +114,15 @@ dfts = pd.merge(dfts, mm, on = "code")
 dfts
 
 # %%
-# divsplit = pq.read_table("01_PROC/divsplit.parquet").to_pandas()
-# divsplit["Date"] = pd.to_datetime(divsplit["Date"])
-# divsplit.drop("Dividends", axis = 1, inplace = True)
+divsplit = pq.read_table("01_PROC/divsplit.parquet").to_pandas()
+divsplit["Date"] = pd.to_datetime(divsplit["Date"])
+divsplit.drop("Dividends", axis = 1, inplace = True)
 
 # %%
-# divsplit
+divsplit
 
 # %%
-# dfts = pd.merge(dfts, divsplit, on = ["code", "Date"])
+dfts = pd.merge(dfts, divsplit, on = ["code", "Date"])
 
 # %%
 scale = pq.read_table("01_PROC/scale.parquet").to_pandas()
