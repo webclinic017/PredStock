@@ -157,7 +157,7 @@ def train(path, name, dropname):
 
     save_path = None
     label_column = name
-    metric = "mae"
+    metric = "r2"
 
     hyperparameters = {
         # KNNRapidsModel: {
