@@ -70,7 +70,7 @@ score_new = df_te_new.groupby("Date").apply(get_best, 1)["oc3"].sum()
 score_pre = df_te_pre.groupby("Date").apply(get_best, 1)["oc3"].sum() 
 
 if score_new >= score_pre:
-    pickle.dump(new, open('ag_model_best.mdl', 'wb'))
+    pickle.dump(new, open('oc3_best.mdl', 'wb'))
     print("モデル更新完了")
     score_best = score_new
     slacker = "モデル更新完了" + str(score_best)
