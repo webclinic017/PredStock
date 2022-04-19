@@ -59,20 +59,20 @@ def ranker(df):
     return df
 
 # %%
+join = join.groupby("Date").apply(ranker).reset_index()
+
+# %%
 def crate(df, uname):
     df = df[df[uname] < 0.5]
     df = df[df[uname] > -0.5]
     return df
 
 def clip(df, uname):
-    df[uname] = df[uname].clip(lower = -0.5, upper = 0.5)
+    df[uname] = df[uname].clip(lower = -0.5, upper = 0.8)
     return df
 
 # %%
-join = clip(join, "oc3")
-
-# %%
-join = join.groupby("Date").apply(ranker).reset_index()
+join = clip(join, "oc3r")
 
 # %%
 test = join[join["Date"] > join["Date"].max() - timedelta(days = 365)]
