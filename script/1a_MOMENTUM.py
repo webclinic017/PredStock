@@ -24,38 +24,35 @@ import pyarrow.parquet as pq
 
 # %%
 os.chdir('/home/toshi/PROJECTS/PredStock')
-from  common import get_data_j, reader, mmt
+from  common import get_data_j, reader, mmt, dfall
 
 # %%
 path = "0a_HISTORY/"
 
 # %%
-data_j = get_data_j()
+ndays = 365
 
 # %%
-ndays = 730
-
-# %%
-mmlist = [ndays]
+df = dfall(3650, path)
+df["Date"] = pd.to_datetime(df["Date"])
 
 # %%
 lista = []
-for i in data_j["code"]:
-   i = str(i) + ".T"
-   df = reader(i,ndays, path)
-   if len(df) > 1:
-      listb = []
-      listb.append(mmt(df,ndays))
-      dfmm = pd.DataFrame(listb, index = ["mm"]).T
-      dfmm["code"] = [i]
-      lista.append(dfmm)
-dfmm = pd.concat(lista).reset_index(drop = True)
+for i in df["code"].unique():
+    df_cut = df[df["code"] == i]
+    lista.append(mmt(df_cut, ndays))
 
 # %%
-pq.write_table(pa.Table.from_pandas(dfmm), "01_PROC/mm.parquet")
+df2 = pd.concat(lista).dropna()
 
 # %%
-dfmm
+df2
+
+# %%
+df2.describe()
+
+# %%
+pq.write_table(pa.Table.from_pandas(df2), "01_PROC/mm.parquet")
 
 # %%
 

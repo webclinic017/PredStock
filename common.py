@@ -104,12 +104,9 @@ def pct(df):
 
 # モーメンタム計算
 def mmt(df, ndays):
-    df = df[df["Date"] >= df["Date"].max() - timedelta(days=ndays)]
-    p1 = df.head(1)["Close"].item()
-    p2 = df.tail(1)["Close"].item()
-    rate = p2 / p1
-    ratio = (df["Date"].max() - df["Date"].min()) / datetime.timedelta(days=ndays)
-    return np.log(rate / ratio)
+    df["Close_past"] = df["Close"].shift(ndays)
+    df["mm"] = np.log(df["Close"] / df["Close_past"])
+    return df[["Date", "code", "mm"]]
 
 
 def slack(txt):

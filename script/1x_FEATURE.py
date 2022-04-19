@@ -35,9 +35,9 @@ ldays = 5
 ndays = ndays + ldays + 5
 
 # %%
-df = pq.read_table("01_PROC/cannik.parquet").to_pandas()
+df = pq.read_table("01_PROC/cannikjpy.parquet").to_pandas()
 df["Date"] = pd.to_datetime(df["Date"])
-df["pClose_nd"] = df["pClose"] - df["npClose"]
+# df["pClose_nd"] = df["pClose"] - df["npClose"]
 
 # %%
 df
@@ -53,20 +53,17 @@ dfxday
 df = pd.merge(df, dfxday, on = "Date")
 
 # %%
-dfyd = reader("JPY=X", ndays, path)[["Date", "pClose"]].rename(columns={"pClose": "ypClose"})
-dfyd["Date"] = pd.to_datetime(dfyd["Date"])
-df = pd.merge(df, dfyd, on = "Date")
-
-# %%
 df = df.drop(["Open", "High", "Low", "Close", "Volume", "Dividends", "Stock Splits", "npClose"], axis = 1)
 
 # %%
-df[["pClose",  "rOpen", "rHigh", "rLow", "pClose_n", "pClose_nd"]] *= 10
+df[["pClose",  "rOpen", "rHigh", "rLow", "pClose_n", "pClose_y"]] *= 10
 df["pxVolume"] *= 0.4
-df["ypClose"] *= 50
+df["jpypClose"] *= 50
+df["daymm"] *= 5
+df["daybeta"] *= 2
 
 # %%
-clipname = ["pClose","pxVolume","rOpen","rHigh","rLow","beta","pClose_n","daymm","daybeta","ypClose"]
+clipname = ["pClose", "pxVolume", "rOpen", "rHigh", "rLow", "pClose_n", "jpypClose", "betajpy", "pClose_y", "daymm", "daybeta"]
 df[clipname] = df[clipname].clip(lower=-2, upper=2)
 
 # %%
@@ -108,7 +105,7 @@ mm = pq.read_table("01_PROC/mm.parquet").to_pandas()
 mm
 
 # %%
-dfts = pd.merge(dfts, mm, on = "code")
+dfts = pd.merge(dfts, mm, on = ["code", "Date"])
 
 # %%
 dfts
@@ -126,7 +123,7 @@ dfts = pd.merge(dfts, divsplit, on = ["code", "Date"])
 
 # %%
 scale = pq.read_table("01_PROC/scale.parquet").to_pandas()
-scale["scale"] = np.log(scale["scale"]) * 0.1 - 2.4
+scale["scale"] = np.log(scale["scale"]) * 0.1
 
 # %%
 scale.hist()
