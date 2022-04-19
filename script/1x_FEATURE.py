@@ -58,10 +58,10 @@ dfyd["Date"] = pd.to_datetime(dfyd["Date"])
 df = pd.merge(df, dfyd, on = "Date")
 
 # %%
-df = df.drop(["Open", "High", "Low", "Close", "Volume", "Dividends", "Stock Splits", "npClose"], axis = 1)
+df = df.drop(["Open", "High", "Low", "Close", "Volume", "Dividends", "Stock Splits"], axis = 1)
 
 # %%
-df[["pClose",  "rOpen", "rHigh", "rLow", "pClose_n", "pClose_nd"]] *= 10
+df[["pClose",  "rOpen", "rHigh", "rLow", "pClose_n", "pClose_nd", "npClose"]] *= 10
 df["pxVolume"] *= 0.4
 df["ypClose"] *= 50
 
@@ -112,6 +112,12 @@ dfts = pd.merge(dfts, mm, on = "code")
 
 # %%
 dfts
+
+# %%
+# divsplit = pq.read_table("01_PROC/divsplit.parquet").to_pandas()
+
+# %%
+# dfts = pd.merge(dfts, divsplit, on = ["code", "Date"])
 
 # %%
 scale = pq.read_table("01_PROC/scale.parquet").to_pandas()
