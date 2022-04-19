@@ -66,8 +66,8 @@ def get_worst(df, n):
     return df.sort_values("pred", ascending=False).tail(n)
 
 # %%
-score_new = df_te_new.groupby("Date").apply(get_best, 1)["oc3"].mean()
-score_pre = df_te_pre.groupby("Date").apply(get_best, 1)["oc3"].mean() 
+score_new = df_te_new.groupby("Date").apply(get_best, 1)["oc3"].sum()
+score_pre = df_te_pre.groupby("Date").apply(get_best, 1)["oc3"].sum() 
 
 if score_new >= score_pre:
     pickle.dump(new, open('ag_model_best.mdl', 'wb'))
