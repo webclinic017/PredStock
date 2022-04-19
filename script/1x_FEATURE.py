@@ -135,7 +135,7 @@ scale.hist()
 scale
 
 # %%
-scale = scale[scale["scale"] > scale["scale"].quantile(0.25)]
+scale = scale[scale["scale"] > scale["scale"].quantile(0.5)]
 
 # %%
 dfts = pd.merge(dfts, scale, on = "code")
