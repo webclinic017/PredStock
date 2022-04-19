@@ -36,7 +36,7 @@ path = "0a_HISTORY/"
 # data_j = get_data_j()
 
 # %%
-ndays = 1460
+ndays = 1825
 
 # %%
 dfall = dfall(ndays, path)
@@ -103,9 +103,9 @@ xday
 xday.corr()
 
 # %%
-fig = plt.figure(figsize = (5,5), facecolor="white")
+fig = plt.figure(figsize = (7,7), facecolor="white")
 # plt.plot(xday["dayvcoef"], xday["daymm"], alpha = 0.2)
-plt.scatter(xday["daybeta"], xday["daymm"], s = 3)
+plt.scatter(xday["daybeta"], xday["daymm"], s = 2)
 
 # %%
 fig = plt.figure(figsize = (18,5), facecolor="white")
@@ -125,11 +125,18 @@ df = xday.copy()
 df = df.rename(columns={"Date": "ds", "daymm": "y"})
 
 # %%
-m = Prophet()
+df.tail()
+
+# %%
+m = Prophet(weekly_seasonality=True)
+# m.add_regressor('daybeta')
 m.fit(df)
 
 # %%
 future = m.make_future_dataframe(periods=1)
+
+# %%
+# future = pd.merge(future, df)
 
 # %%
 forecast = m.predict(future)

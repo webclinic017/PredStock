@@ -30,7 +30,7 @@ from  common import get_data_j, reader, mmt, beta, dfall
 path = "0a_HISTORY/"
 
 # %%
-ndays = 365
+ndays = 730
 
 # %%
 df = dfall(ndays, path)

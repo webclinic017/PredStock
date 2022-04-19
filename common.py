@@ -197,6 +197,12 @@ def train(path, name, dropname):
         #     },
     }
 
+    hyperparameter_tune_kwargs = {
+        "searcher": "auto",
+        "scheduler": "local",
+        "num_trials": 10,
+    }
+    
     new = TabularPredictor(
         label=label_column, eval_metric=metric, path=save_path, groups="group"
     )

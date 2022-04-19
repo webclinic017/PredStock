@@ -30,7 +30,7 @@ from  common import get_data_j, reader, mmt, beta, dfall
 path = "0a_HISTORY/"
 
 # %%
-ndays = 1460
+ndays = 1825
 ldays = 5
 ndays = ndays + ldays + 5
 
