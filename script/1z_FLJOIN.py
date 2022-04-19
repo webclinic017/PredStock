@@ -52,6 +52,13 @@ join = pd.merge(feature, label, on = ["Date", "code"])
 join
 
 # %%
+def ranker(df):
+    # df["oc3r"] = (df["oc3"].rank() - 1) / (df["oc3"].count() - 1)
+    # df["oc3r"] = df["oc3"].clip(lower = 0)
+    df["oc3r"] = df["oc3"]
+    return df
+
+# %%
 def crate(df, uname):
     df = df[df[uname] < 0.5]
     df = df[df[uname] > -0.5]
@@ -63,13 +70,6 @@ def clip(df, uname):
 
 # %%
 join = clip(join, "oc3")
-
-# %%
-def ranker(df):
-    # df["oc3r"] = (df["oc3"].rank() - 1) / (df["oc3"].count() - 1)
-    # df["oc3r"] = df["oc3"].clip(lower = 0)
-    df["oc3r"] = df["oc3"]
-    return df
 
 # %%
 join = join.groupby("Date").apply(ranker).reset_index()
