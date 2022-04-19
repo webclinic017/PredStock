@@ -157,7 +157,7 @@ def train(path, name, dropname):
 
     save_path = None
     label_column = name
-    metric = "r2"
+    metric = "mae"
 
     hyperparameters = {
         # KNNRapidsModel: {
@@ -173,19 +173,19 @@ def train(path, name, dropname):
         #     "ag_args_fit": {"num_gpus": 1},
         #     "ag_args_ensemble": {"num_folds_parallel": 1},
         # },
-        # "GBM": [
-        #     {
-        #         "ag_args_fit": {"num_gpus": 1},
-        #         "ag_args_ensemble": {"num_folds_parallel": 3},
-        #         "extra_trees": True,
-        #         "ag_args": {"name_suffix": "XT"},
-        #     },
-        #     {
-        #         "ag_args_fit": {"num_gpus": 1},
-        #         "ag_args_ensemble": {"num_folds_parallel": 3},
-        #     },
-        #     # 'GBMLarge',
-        # ],
+        "GBM": [
+            # {
+            #     "ag_args_fit": {"num_gpus": 1},
+            #     "ag_args_ensemble": {"num_folds_parallel": 3},
+            #     "extra_trees": True,
+            #     "ag_args": {"name_suffix": "XT"},
+            # },
+            {
+                "ag_args_fit": {"num_gpus": 1},
+                "ag_args_ensemble": {"num_folds_parallel": 3},
+            },
+            # 'GBMLarge',
+        ],
         # "XT": {"ag_args_ensemble": {"num_folds_parallel": 1}},
         # 'NN_TORCH': {'ag_args_fit': {'num_gpus': 1}, "ag_args_ensemble": {"num_folds_parallel": 3}},
         # 'FASTAI': {'ag_args_fit': {'num_gpus': 1}, "ag_args_ensemble": {"num_folds_parallel": 3}},
