@@ -63,8 +63,8 @@ join = crate(join, "oc3")
 # %%
 def ranker(df):
     # df["oc3r"] = (df["oc3"].rank() - 1) / (df["oc3"].count() - 1)
-    df["oc3r"] = df["oc3"].clip(lower = 0)
-    # df["oc3r"] = df["oc3"]
+    # df["oc3r"] = df["oc3"].clip(lower = 0)
+    df["oc3r"] = df["oc3"]
     return df
 
 # %%
