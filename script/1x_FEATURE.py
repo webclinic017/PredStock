@@ -58,16 +58,16 @@ dfyd["Date"] = pd.to_datetime(dfyd["Date"])
 df = pd.merge(df, dfyd, on = "Date")
 
 # %%
-df = df.drop(["Open", "High", "Low", "Close", "Volume", "Dividends", "Stock Splits"], axis = 1)
+df = df.drop(["Open", "High", "Low", "Close", "Volume", "Dividends", "Stock Splits", "npClose"], axis = 1)
 
 # %%
-df[["pClose",  "rOpen", "rHigh", "rLow", "pClose_n", "pClose_nd", "npClose"]] *= 10
+df[["pClose",  "rOpen", "rHigh", "rLow", "pClose_n", "pClose_nd"]] *= 10
 df["pxVolume"] *= 0.4
 df["ypClose"] *= 50
 
 # %%
-# clipname = ["pClose","pxVolume","rOpen","rHigh","rLow","beta","pClose_n","daymm","daybeta","ypClose"]
-# df[clipname] = df[clipname].clip(lower=-2, upper=2)
+clipname = ["pClose","pxVolume","rOpen","rHigh","rLow","beta","pClose_n","daymm","daybeta","ypClose"]
+df[clipname] = df[clipname].clip(lower=-2, upper=2)
 
 # %%
 df.describe()
@@ -114,10 +114,14 @@ dfts = pd.merge(dfts, mm, on = "code")
 dfts
 
 # %%
-# divsplit = pq.read_table("01_PROC/divsplit.parquet").to_pandas()
+divsplit = pq.read_table("01_PROC/divsplit.parquet").to_pandas()
+divsplit["Date"] = pd.to_datetime(divsplit["Date"])
 
 # %%
-# dfts = pd.merge(dfts, divsplit, on = ["code", "Date"])
+divsplit
+
+# %%
+dfts = pd.merge(dfts, divsplit, on = ["code", "Date"])
 
 # %%
 scale = pq.read_table("01_PROC/scale.parquet").to_pandas()

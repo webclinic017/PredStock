@@ -218,5 +218,13 @@ def train(path, name, dropname):
     )
     return new
 
+def divsplit(df):
+    df = df[["Date", "Dividends", "Stock Splits", "code"]]
+    df["Stock Splits"] = (df["Stock Splits"] > 0) * 1
+    for i in range(len(df)):
+        df.iat[i,1] = max(df.iat[i,1], df.iat[i-1,1] * 0.7)
+        df.iat[i,2] = max(df.iat[i,2], df.iat[i-1,2] * 0.7)
+    return df
+
 if __name__ == '__main__':
     print("これは自作モジュールです")
