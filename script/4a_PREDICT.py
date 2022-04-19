@@ -11,13 +11,14 @@ import talib
 from tqdm import tqdm
 import gc
 import slackweb
-
+import datetime
 import pickle
 # from prophet import Prophet
 from sklearn.metrics import r2_score
 from joblib import Parallel, delayed
 import pyarrow as pa
 import pyarrow.parquet as pq
+from datetime import timedelta
 
 # %%
 os.chdir('/home/toshi/PROJECTS/PredStock')
@@ -33,8 +34,11 @@ def slack(txt):
         print("slack_error")
 
 # %%
-test = pq.read_table("01_PROC/test1.parquet").to_pandas().dropna()
+test = pq.read_table("01_PROC/tsfeature.parquet").to_pandas().dropna()
 test["Date"] = pd.to_datetime(test["Date"])
+
+# %%
+date = test["Date"].drop_duplicates()
 
 # %%
 test = test[test["Date"] == test["Date"].max()]
@@ -55,30 +59,37 @@ dffuture2
 dffuture2["pred"].hist()
 
 # %%
-dffuture3 = dffuture2.sort_values("pred")[["code", "pred"]].reset_index(drop=True).head(2)
+dffuture3 = dffuture2.sort_values("pred")[["code", "pred", "Date"]].reset_index(drop=True).head(2)
 date = test['Date'].tail(1).item()
+strdate = str(datetime.date(date.year, date.month, date.day))
 
 # %%
-if len(dffuture3) == 0:
-    print('NO BEST')
-    subject_a = str(date) + ' の予報 ベストナシ' 
-    body_a = 'NO BEST'
-else:
-    print('BEST')
-    subject_a = str(date) + ' の予報 ' + str(dffuture3.reset_index().loc[:,'code'].iloc[0])
-    body_a = 'BEST\n'
-    for i  in range(10):
-        if len(dffuture3) == i:
-            break
-        body_a = body_a + '#' + str(i) + ' Code=' + str(dffuture3.reset_index().loc[:,'code'].iloc[i])
-        body_a = body_a + '/Score=' + str(dffuture3.loc[:,'pred'].iloc[i]) + '\n'
-    body_a = body_a + ' Length = ' + str(len(dffuture3))
+try:
+    # dfown = pd.read_csv("dfown.csv")
+    own = pq.read_table("01_PROC/own.parquet").to_pandas()
+except:
+    pq.write_table(pa.Table.from_pandas(dffuture3), "01_PROC/own.parquet")
+    own = dffuture3
+
 
 # %%
-slacker = subject_a + '\n' + body_a
+own = pd.concat([own, dffuture3]).drop_duplicates()
+pq.write_table(pa.Table.from_pandas(own), "01_PROC/own.parquet")
 
 # %%
-slack(slacker)
+own
+
+# %%
+dffuture3
+
+# %%
+strdate = str(datetime.date(date.year, date.month, date.day))
+s = strdate + "\n"
+for i in range(len(dffuture3)):
+    s += "Buy "+ dffuture3["code"][i] + "\n"
+
+# %%
+slack(s)
 
 # %%
 
