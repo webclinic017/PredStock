@@ -29,6 +29,7 @@ ipython /home/toshi/PROJECTS/PredStock/script/0a_HISTORY.py
 ipython /home/toshi/PROJECTS/PredStock/script/1c_XDAY.py
 ipython /home/toshi/PROJECTS/PredStock/script/1d_CANNIK.py
 ipython /home/toshi/PROJECTS/PredStock/script/1e_SCALE.py
+ipython /home/toshi/PROJECTS/PredStock/script/1f_DIVSPLIT.py
 ipython /home/toshi/PROJECTS/PredStock/script/1x_FEATURE.py
 ipython /home/toshi/PROJECTS/PredStock/script/1y_LABEL.py
 ipython /home/toshi/PROJECTS/PredStock/script/1z_FLJOIN.py
