@@ -31,7 +31,7 @@ from  common import  dfall, reader
 path = "0a_HISTORY/"
 
 # %%
-ndays = 1825
+ndays = 1460
 
 # %%
 df = dfall(ndays, path)
