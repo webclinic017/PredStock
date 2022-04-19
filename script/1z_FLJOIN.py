@@ -70,7 +70,7 @@ def crate(df, uname):
     return df
 
 def clip(df, uname):
-    df[uname] = df[uname].clip(lower = -0.5, upper = 0.8)
+    df[uname] = df[uname].clip(lower = -0.5, upper = 1.0)
     return df
 
 # %%
