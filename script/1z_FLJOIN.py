@@ -52,11 +52,13 @@ join = pd.merge(feature, label, on = ["Date", "code"])
 join
 
 # %%
+# oc3rは学習用に処理した値、oc3は評価に使うそのままの値
 def ranker(df):
     # df["oc3r"] = (df["oc3"].rank() - 1) / (df["oc3"].count() - 1)
     # df["oc3r"] = df["oc3"].clip(lower = 0)
     df["oc3r"] = df["oc3"]
     return df
+
 
 # %%
 join = join.groupby("Date").apply(ranker).reset_index()
