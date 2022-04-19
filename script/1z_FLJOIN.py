@@ -57,8 +57,12 @@ def crate(df, uname):
     df = df[df[uname] > -0.5]
     return df
 
+def clip(df, uname):
+    df[uname] = df[uname].clip(lower = -0.5, upper = 0.5)
+    return df
+
 # %%
-join = crate(join, "oc3")
+join = clip(join, "oc3")
 
 # %%
 def ranker(df):
