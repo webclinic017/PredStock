@@ -116,6 +116,7 @@ dfts
 # %%
 divsplit = pq.read_table("01_PROC/divsplit.parquet").to_pandas()
 divsplit["Date"] = pd.to_datetime(divsplit["Date"])
+divsplit.drop("Dividends", axis = 1, inplace = True)
 
 # %%
 divsplit
