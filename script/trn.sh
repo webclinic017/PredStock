@@ -1,4 +1,9 @@
 #!/bin/sh
+# apt update
+# apt upgrade -y
+rm /home/toshi/PROJECTS/PredStock/data_j.xls
+wget https://www.jpx.co.jp/markets/statistics-equities/misc/tvdivq0000001vg2-att/data_j.xls -P /home/toshi/PROJECTS/PredStock
+chown -R toshi /home/toshi/PROJECTS/PredStock/data_j.xls
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
@@ -15,13 +20,21 @@ fi
 unset __conda_setup
 # <<< conda initialize <<<
 
+conda activate ag
 chown -R toshi /home/toshi/PROJECTS/PredStock/AutogluonModels/*
-conda activate ag2
-ipython /home/toshi/PROJECTS/PredStock/script/05_PRE.py
-ipython /home/toshi/PROJECTS/PredStock/script/07_TRAIN.py
-ipython /home/toshi/PROJECTS/PredStock/script/08_POST.py
-ipython /home/toshi/PROJECTS/PredStock/script/07_TRAIN_REG.py
-ipython /home/toshi/PROJECTS/PredStock/script/08_POST.py
+
+# ipython /home/toshi/PROJECTS/PredStock/script/0a_HISTORY.py
+ipython /home/toshi/PROJECTS/PredStock/script/1a_MOMENTUM.py
+ipython /home/toshi/PROJECTS/PredStock/script/1b_BETA.py
+ipython /home/toshi/PROJECTS/PredStock/script/1c_XDAY.py
+ipython /home/toshi/PROJECTS/PredStock/script/1d_CANNIK.py
+ipython /home/toshi/PROJECTS/PredStock/script/1e_SCALE.py
+ipython /home/toshi/PROJECTS/PredStock/script/1x_FEATURE.py
+ipython /home/toshi/PROJECTS/PredStock/script/1y_LABEL.py
+ipython /home/toshi/PROJECTS/PredStock/script/1z_FLJOIN.py
+ipython /home/toshi/PROJECTS/PredStock/script/2a_TRAIN_OC3.py
+ipython /home/toshi/PROJECTS/PredStock/script/3a_POST.py
+ipython /home/toshi/PROJECTS/PredStock/script/4a_PREDICT.py
+
 chown -R toshi /home/toshi/PROJECTS/PredStock/AutogluonModels/*
-ipython /home/toshi/PROJECTS/PredStock/script/06_PREDICT.py
 ipython /home/toshi/PROJECTS/PredStock/script/99_SHUTDOWN.py
