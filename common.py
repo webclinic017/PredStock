@@ -29,6 +29,13 @@ from tqdm import tqdm
 
 patch_sklearn()
 
+def slack(txt):
+    print(txt)
+    try:
+        slack = slackweb.Slack(url=pd.read_csv("slackkey.csv")["0"].item())
+        slack.notify(text=txt)
+    except:
+        print("slack_error")
 
 # ダウンロードする株価の種別を決める
 def get_data_j():
@@ -41,11 +48,11 @@ def get_data_j():
     else:
         data_j = data2
 
-    data_j = data_j.rename(columns={"コード": "code", "33業種区分": "indus", "規模コード": "scale"})
+    data_j = data_j.rename(columns={"コード": "code", "33業種コード": "indus", "規模コード": "scale"})
     data_j.index = data_j.index.astype(int)
     data_j = data_j[data_j["code"] < 10000]
     data_j["code"] = data_j["code"].astype("str")
-    return data_j[["code", "indus", "scale"]]
+    return data_j[["code", "indus", "scale", "33業種区分"]]
 
 
 def history(i: str):
@@ -71,88 +78,88 @@ def history(i: str):
         print("rewrite")
         df = yf.Ticker(i).history(period="max", auto_adjust=True).reset_index()
         df["Date"] = pd.to_datetime(df["Date"]).dt.date
-    df["Dividends"] = df["Dividends"].astype("float")
-    df["Stock Splits"] = df["Stock Splits"].astype("float")
+    if "Dividends" in  df.columns:
+        df["Dividends"] = df["Dividends"].astype("float")
+    if "Stock Splits" in  df.columns:
+        df["Stock Splits"] = df["Stock Splits"].astype("float")
     df = df.sort_values("Date")
     pq.write_table(
         pa.Table.from_pandas(df), path + i.replace("^", "-") + "_price.parquet"
     )
 
 
+def pct(df):
+    dfout = np.log(df[["xVolume", "Close"]].pct_change() + 1)
+    dfout = dfout.rename(columns={"xVolume": "rxVolume", "Close": "ret"})
+
+    return dfout
+
+
 def reader(n: str, ndays: int, path: str):
     try:
         df = pq.read_table(path + n.replace("^", "-") + "_price.parquet").to_pandas()
-        df["Date"] = pd.to_datetime(df["Date"]).dt.date
-        df = df.set_index("Date")
-        df["xVolume"] = df["Volume"] * (df["Close"] + df["Open"]) * 0.5
-        df = pd.concat([df, pct(df)], axis=1).drop("xVolume", axis = 1)
-        df = df[df.index >= (df.index.max() - timedelta(days=ndays))]
+        df["Date"] = pd.to_datetime(df["Date"])
+        df = df[df["Date"] >= (df["Date"].max() - timedelta(days=ndays + 2))]
+        df = df.set_index("Date") 
+        df["xVolume"] = df["Volume"] * df["Close"]
+        df = pd.concat([df, pct(df)], axis=1)
         nlist = ["Open", "High", "Low"]
         for m in nlist:
-            df["r" + m] = np.log(df[m] / df["Close"])
+            df["d" + m] = np.log(df[m] / df["Close"])
         df = df.reset_index()
         df["code"] = n
+        df = df[1:]
     except:
         df = pd.DataFrame()
     return df
 
 
-def pct(df):
-    df = df.sort_index().add_prefix("p")
-    return np.log(df.pct_change() + 1)[["pClose", "pxVolume"]]
+def readall(ndays, path):
+    listx = []
+    data_j = get_data_j()
+    for i in data_j["code"]:
+        i = i + ".T"
+        df = reader(i, ndays, path).drop(["Open", "High", "Low", "Close"], axis=1)
+        df["code"] = i
+        if len(df) > 1:
+            listx.append(df)
+    dfout = pd.concat(listx)
+    dfout["Date"] = pd.to_datetime(dfout["Date"])
+    dfout = dfout[dfout["Date"] > (dfout["Date"].max() - timedelta(days=ndays))]
+    return dfout
 
 
 # モーメンタム計算
-def mmt(df, nlist):
-    snlist = [str(n) for n in nlist]
-    listn = ["Date", "code"]
-    for n in range(len(nlist)):
-        x = nlist[n]
-        s = snlist[n]
-        df["Close_past"] = df["Close"].shift(x)
-        df["mm" + s] = np.log(df["Close"] / df["Close_past"])
-        listn.append("mm" +s)
-    return df[listn]
-
-
-def slack(txt):
-    print(txt)
-    try:
-        slack = slackweb.Slack(url=pd.read_csv("slackkey.csv")["0"].item())
-        slack.notify(text=txt)
-    except:
-        print("slack_error")
-
+def momentum(dfin, mmlist):
+    listc = []
+    for cname in dfin["code"].unique():
+        df = dfin[dfin["code"]==cname].reset_index(drop = True)
+        listb=[]
+        for lenmm in mmlist:
+            lista =[]
+            for i in range(len(df)):
+                moment =  df[df["Date"] > df["Date"].iloc[i : i + 1].item() - timedelta(days=lenmm)]["ret"].sum()
+                lista.append(moment)
+            listb.append(pd.DataFrame(lista, columns=["momentum_"+str(lenmm)]))
+        dfb = pd.concat(listb, axis = 1)
+        dfb["code"] = cname
+        dfb["Date"] = df["Date"]
+        listc.append(dfb)
+    return pd.concat(listc)
 
 # ベータ
 def beta(x, y):
     x = np.array(x)
     lr = LinearRegression()
-    X = x.reshape((len(x), 1))
+    X = x.reshape((len(x), len(x.T)))
     lr.fit(X, y)
-    coef = lr.coef_[0]
-    return coef
+    return lr.coef_
 
 
 # 日の性質係数
 def days(df, name):
     r = np.corrcoef(df[name], df["pClose"])[0, 1]
     return r
-
-
-def dfall(ndays, path):
-    listx = []
-    data_j = get_data_j()
-    for i in data_j["code"]:
-        i = i + ".T"
-        df = reader(i, ndays, path)
-        df["code"] = i
-        if len(df) > 1:
-            listx.append(df)
-    dfout = pd.concat(listx)
-    dfout["Date"] = pd.to_datetime(dfout["Date"]).dt.date
-    dfout = dfout[dfout["Date"] > (dfout["Date"].max() - timedelta(days=ndays))]
-    return dfout
 
 
 def train(path, name, dropname):
@@ -190,7 +197,10 @@ def train(path, name, dropname):
             # 'GBMLarge',
         ],
         # "XT": {"ag_args_ensemble": {"num_folds_parallel": 1}},
-        'NN_TORCH': {'ag_args_fit': {'num_gpus': 1}, "ag_args_ensemble": {"num_folds_parallel": 3}},
+        "NN_TORCH": {
+            "ag_args_fit": {"num_gpus": 1},
+            "ag_args_ensemble": {"num_folds_parallel": 3},
+        },
         # 'FASTAI': {'ag_args_fit': {'num_gpus': 1}, "ag_args_ensemble": {"num_folds_parallel": 3}},
         # 'TRANSF': {
         #     'ag_args_fit': {'num_gpus': 1},
@@ -205,13 +215,13 @@ def train(path, name, dropname):
         "scheduler": "local",
         "num_trials": 10,
     }
-    
+
     new = TabularPredictor(
         label=label_column, eval_metric=metric, path=save_path, groups="group"
     )
 
     new.fit(
-        train_data=train_b.drop(dropname, axis = 1),
+        train_data=train_b.drop(dropname, axis=1),
         num_bag_folds=10,
         num_bag_sets=1,
         num_stack_levels=2,
@@ -221,13 +231,15 @@ def train(path, name, dropname):
     )
     return new
 
+
 def divsplit(df):
     df = df[["Date", "Dividends", "Stock Splits", "code"]]
     df["Stock Splits"] = (df["Stock Splits"] > 0) * 1
     for i in range(len(df)):
-        df.iat[i,1] = max(df.iat[i,1], df.iat[i-1,1] * 0.7)
-        df.iat[i,2] = max(df.iat[i,2], df.iat[i-1,2] * 0.7)
+        df.iat[i, 1] = max(df.iat[i, 1], df.iat[i - 1, 1] * 0.7)
+        df.iat[i, 2] = max(df.iat[i, 2], df.iat[i - 1, 2] * 0.7)
     return df
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     print("これは自作モジュールです")
