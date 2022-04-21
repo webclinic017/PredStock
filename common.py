@@ -55,37 +55,7 @@ def get_data_j():
     return data_j[["code", "indus", "scale", "33業種区分"]]
 
 
-def history(i: str):
-    flag = 0
-    path = "0a_HISTORY/"
-    try:
-        df = pq.read_table(path + i.replace("^", "-") + "_price.parquet").to_pandas()
-        try:
-            df2 = yf.Ticker(i).history(period="1mo", auto_adjust=True).reset_index()
-            df2["Date"] = pd.to_datetime(df2["Date"]).dt.date
-            df = pd.concat([df, df2])
-        except:
-            flag = 1
 
-        if df.duplicated().sum() <= 10:
-            flag = 1
-    except:
-        flag = 1
-    if flag == 0:
-        print("add_to_old")
-        df = df.drop_duplicates(subset=["Date"], keep="last")
-    else:
-        print("rewrite")
-        df = yf.Ticker(i).history(period="max", auto_adjust=True).reset_index()
-        df["Date"] = pd.to_datetime(df["Date"]).dt.date
-    if "Dividends" in  df.columns:
-        df["Dividends"] = df["Dividends"].astype("float")
-    if "Stock Splits" in  df.columns:
-        df["Stock Splits"] = df["Stock Splits"].astype("float")
-    df = df.sort_values("Date")
-    pq.write_table(
-        pa.Table.from_pandas(df), path + i.replace("^", "-") + "_price.parquet"
-    )
 
 
 def pct(df):
@@ -95,38 +65,28 @@ def pct(df):
     return dfout
 
 
-def reader(n: str, ndays: int, path: str):
+def reader(n: str, path: str):
     try:
         df = pq.read_table(path + n.replace("^", "-") + "_price.parquet").to_pandas()
-        df["Date"] = pd.to_datetime(df["Date"])
-        df = df[df["Date"] >= (df["Date"].max() - timedelta(days=ndays + 2))]
-        df = df.set_index("Date") 
-        df["xVolume"] = df["Volume"] * df["Close"]
-        df = pd.concat([df, pct(df)], axis=1)
-        nlist = ["Open", "High", "Low"]
-        for m in nlist:
-            df["d" + m] = np.log(df[m] / df["Close"])
-        df = df.reset_index()
         df["code"] = n
-        df = df[1:]
     except:
         df = pd.DataFrame()
     return df
 
 
-def readall(ndays, path):
-    listx = []
-    data_j = get_data_j()
-    for i in data_j["code"]:
-        i = i + ".T"
-        df = reader(i, ndays, path).drop(["Open", "High", "Low", "Close"], axis=1)
-        df["code"] = i
-        if len(df) > 1:
-            listx.append(df)
-    dfout = pd.concat(listx)
-    dfout["Date"] = pd.to_datetime(dfout["Date"])
-    dfout = dfout[dfout["Date"] > (dfout["Date"].max() - timedelta(days=ndays))]
-    return dfout
+# def readall(ndays, path):
+#     listx = []
+#     data_j = get_data_j()
+#     for i in data_j["code"]:
+#         i = i + ".T"
+#         df = reader(i, ndays, path).drop(["Open", "High", "Low", "Close"], axis=1)
+#         df["code"] = i
+#         if len(df) > 1:
+#             listx.append(df)
+#     dfout = pd.concat(listx)
+#     dfout["Date"] = pd.to_datetime(dfout["Date"])
+#     dfout = dfout[dfout["Date"] > (dfout["Date"].max() - timedelta(days=ndays))]
+#     return dfout
 
 
 # モーメンタム計算

@@ -17,7 +17,7 @@ import time
 import platform
 
 # %%
-os.chdir('/home/toshi/PROJECTS/PredStock')
+os.chdir('../')
 from  common import get_data_j, history
 
 # %%
@@ -25,12 +25,18 @@ code = pd.DataFrame(get_data_j()["code"])
 
 # %%
 code2 = list(code["code"] + ".T")
+# code2 = []
 
 # %%
-code2.append("^N225")
-code2.append("JPY=X")
-code2.append("EURUSD=X")
-code2.append("GBPUSD=X")
+aux = pd.read_csv("aux.csv")
+
+# %%
+list1 = aux["ticker"]
+
+# %%
+list1 = ["^N225", "^DJI", "^IXIC", "JPY=X", "EURUSD=X", "GBPUSD=X", "CNYJPY=X"]
+for i in list1:
+    code2.append(i)
 
 # %%
 @retry(tries=10)
