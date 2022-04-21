@@ -137,6 +137,7 @@ def days(df, name):
     return r
 
 
+
 def dfall(ndays, path):
     listx = []
     data_j = get_data_j()
