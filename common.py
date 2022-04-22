@@ -38,7 +38,7 @@ def slack(txt):
         print("slack_error")
 
 # ダウンロードする株価の種別を決める
-def get_data_j():
+def read_data_j():
     os.chdir("/home/toshi/PROJECTS/PredStock")
     data_j = pd.read_excel("data_j.xls")
     data1 = data_j[data_j["市場・商品区分"].isin(["プライム（内国株式）"])]
